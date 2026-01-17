@@ -5,15 +5,39 @@ function calculateBazi(year, month, day, hour, gender) {
     // 检查 hour 是否有效 (0-23)
     const hasHour = (hour !== null && hour !== undefined && hour !== "");
     
+    let solarForDay, solarForHour;
+    let hourGz = '';
+    
     if (hasHour) {
-      solar = Solar.fromYmdHms(parseInt(year), parseInt(month), parseInt(day), parseInt(hour), 0, 0);
+      const hourInt = parseInt(hour);
+      // 处理晚子时 (23:00-23:59): 需要特殊处理
+      if (hourInt === 23) {
+        // 晚子时：使用下一天的日期来计算农历日，小时干支用下一天的早子时
+        const nextDay = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        nextDay.setDate(nextDay.getDate() + 1);
+        solarForDay = Solar.fromYmdHms(nextDay.getFullYear(), nextDay.getMonth() + 1, nextDay.getDate(), 0, 0, 0);
+        // 小时干支用下一天的早子时 (hour 0 of next day)
+        solarForHour = Solar.fromYmdHms(nextDay.getFullYear(), nextDay.getMonth() + 1, nextDay.getDate(), 0, 0, 0);
+      } else {
+        // 早子时 (0) 和其他时辰：使用当前日期
+        solarForDay = Solar.fromYmdHms(parseInt(year), parseInt(month), parseInt(day), hourInt, 0, 0);
+        solarForHour = solarForDay;
+      }
+      solar = solarForDay;
     } else {
       solar = Solar.fromYmd(parseInt(year), parseInt(month), parseInt(day));
+      solarForDay = solar;
+      solarForHour = solar;
     }
 
     // 2. 获取农历和八字基础对象
-    const lunar = solar.getLunar();
+    const lunar = solarForDay.getLunar();
     const eightChar = lunar.getEightChar();
+    
+    // 获取小时干支（对于晚子时，使用下一天的早子时的小时干支）
+    const hourLunar = solarForHour.getLunar();
+    const hourEightChar = hourLunar.getEightChar();
+    hourGz = hourEightChar.getTime();
     
     let result = '';
     
@@ -25,7 +49,7 @@ function calculateBazi(year, month, day, hour, gender) {
     result += `${year} ${yearGz}年 ${monthGz}月 ${dayGz}日`;
     
     if (hasHour) {
-      result += ` ${eightChar.getTime()}时\n`;
+      result += ` ${hourGz}时\n`;
     } else {
       result += '\n';
     }

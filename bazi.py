@@ -46,11 +46,25 @@ if __name__ == "__main__":
         birth_day = int(input("Birth Date: "))
         birth_time_input = input("Birth Time (0-23, or press Enter to skip): ").strip()
 
+        from datetime import datetime, timedelta
+        
         if birth_time_input:
             birth_hour = int(birth_time_input)
-            solar = Solar.fromYmdHms(birth_year, birth_month, birth_day, birth_hour, 0, 0)
+            # 处理晚子时 (23:00-23:59): 需要特殊处理
+            if birth_hour == 23:
+                # 晚子时：使用下一天的日期来计算农历日，小时干支用下一天的早子时
+                birth_date = datetime(birth_year, birth_month, birth_day)
+                next_day = birth_date + timedelta(days=1)
+                solar = Solar.fromYmdHms(next_day.year, next_day.month, next_day.day, 0, 0, 0)
+                # 小时干支用下一天的早子时 (hour 0 of next day)
+                solar_for_hour = Solar.fromYmdHms(next_day.year, next_day.month, next_day.day, 0, 0, 0)
+            else:
+                # 早子时 (0) 和其他时辰：使用当前日期
+                solar = Solar.fromYmdHms(birth_year, birth_month, birth_day, birth_hour, 0, 0)
+                solar_for_hour = solar
         else:
             solar = Solar.fromYmd(birth_year, birth_month, birth_day)
+            solar_for_hour = solar
 
         # Get Lunar object and GanZhi
         lunar = solar.getLunar()
@@ -72,7 +86,9 @@ if __name__ == "__main__":
         print(f"{birth_year} {year_gz}年 {month_gz}月 {day_gz}日", end="")
 
         if birth_time_input:
-            hour_gz = lunar.getTimeInGanZhi()
+            # 获取小时干支（对于晚子时，使用下一天的早子时的小时干支）
+            hour_lunar = solar_for_hour.getLunar()
+            hour_gz = hour_lunar.getTimeInGanZhi()
             print(f" {hour_gz}时")
         else:
             print("")

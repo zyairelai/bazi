@@ -37,7 +37,9 @@ body {
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .top-bar button:hover { background: #f0f2f6; }
@@ -98,14 +100,17 @@ body {
     display: flex;
     gap: 8px;
     width: 100%;
+    align-items: stretch;
   }
   
   #hourSelect {
     flex: 1;
+    min-width: 0; /* Allow flex shrinking */
   }
   
-  #copyBtn {
+  .time-button-row #copyBtn {
     flex-shrink: 0;
+    white-space: nowrap;
   }
 }
 
