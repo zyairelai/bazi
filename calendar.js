@@ -71,7 +71,7 @@ function initCalendar() {
 }
 
 function populateDropdowns() {
-  for (let year = 1940; year <= 2100; year++) {
+  for (let year = 1940; year <= 2030; year++) {
     const option = document.createElement('option');
     option.value = year;
     option.textContent = year;
