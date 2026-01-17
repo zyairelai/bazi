@@ -3,6 +3,7 @@ const MONTH_NAMES = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8�
 
 // Chinese time periods (时辰) mapping
 const SHICHEN = [
+  { name: "不确定", hour: -1, range: "Unknown", isUnknown: true },
   { name: "早子时", hour: 0, range: "00:00-00:59" },
   { name: "丑时", hour: 1, range: "01:00-02:59" },
   { name: "寅时", hour: 3, range: "03:00-04:59" },
@@ -89,8 +90,16 @@ function populateDropdowns() {
   SHICHEN.forEach((shichen, index) => {
     const option = document.createElement('option');
     option.value = shichen.hour;
-    option.textContent = `${shichen.name} ${shichen.range}`;
+    if (shichen.isUnknown) {
+      option.textContent = `${shichen.name} ${shichen.range}`;
+    } else {
+      option.textContent = `${shichen.name} ${shichen.range}`;
+    }
     hourSelect.appendChild(option);
+    // Set "不确定" as default (first option)
+    if (index === 0) {
+      option.selected = true;
+    }
   });
 }
 
@@ -106,7 +115,7 @@ function updateDaysDropdown() {
   for (let day = 1; day <= lastDate; day++) {
     const option = document.createElement('option');
     option.value = day;
-    option.textContent = String(day).padStart(2, '0');
+    option.textContent = String(day).padStart(2, '0') + '日';
     dateSelect.appendChild(option);
   }
 }
@@ -117,7 +126,7 @@ let previousYear = null;
 function updateDate() {
   const year = parseInt(yearSelect.value);
   const month = parseInt(monthSelect.value) - 1;
-  const hour = parseInt(hourSelect.value);
+  const hourValue = hourSelect.value;
   
   // Check if month or year changed - need to update days dropdown
   const monthChanged = month !== previousMonth;
@@ -131,6 +140,15 @@ function updateDate() {
     const lastDate = new Date(year, month + 1, 0).getDate();
     date = Math.min(date || 1, lastDate);
     dateSelect.value = date;
+  }
+  
+  // Handle unknown hour (-1 means skip hour)
+  let hour = 0; // default hour
+  if (hourValue !== '-1' && hourValue !== '') {
+    hour = parseInt(hourValue);
+  } else {
+    // Keep current hour if unknown is selected
+    hour = selectedDate.getHours();
   }
   
   selectedDate = new Date(year, month, date, hour, selectedDate.getMinutes());
@@ -155,7 +173,23 @@ function renderUI() {
     previousYear = selectedDate.getFullYear();
   }
   dateSelect.value = parseInt(d);
-  // Set the correct shichen based on hour
-  const shichenIndex = hourToShichen(parseInt(h));
-  hourSelect.value = SHICHEN[shichenIndex].hour;
+  // Set the correct shichen based on hour, or keep unknown if it was selected
+  const currentHourValue = hourSelect.value;
+  if (currentHourValue === '-1') {
+    // Keep unknown selected - don't change it
+    hourSelect.value = -1;
+  } else {
+    // Find the shichen that matches the current hour
+    // hourToShichen returns 0-12 for the original shichen (before unknown was added)
+    // Since unknown is now at index 0, we need to add 1 to get the correct index
+    const targetHour = parseInt(h);
+    const shichenIndex = hourToShichen(targetHour);
+    // SHICHEN[0] is unknown, actual shichen start at index 1
+    // hourToShichen(0) = 0 (早子时) -> should map to SHICHEN[1]
+    // hourToShichen(1) = 1 (丑时) -> should map to SHICHEN[2]
+    // So we add 1 to the index
+    if (shichenIndex + 1 < SHICHEN.length) {
+      hourSelect.value = SHICHEN[shichenIndex + 1].hour;
+    }
+  }
 }
