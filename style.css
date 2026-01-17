@@ -18,6 +18,14 @@ body {
   padding: 12px;
   background: #e5e9ef;
   border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .top-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .top-bar button {
@@ -46,6 +54,59 @@ body {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.date-selects-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.time-button-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .dropdowns-container {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  /* First row: gender only */
+  .gender-radio-container {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Second row: year, month, date */
+  .date-selects-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+  
+  .date-selects-row .datetime-select {
+    flex: 1;
+  }
+  
+  /* Third row: time and button */
+  .time-button-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+  
+  #hourSelect {
+    flex: 1;
+  }
+  
+  #copyBtn {
+    flex-shrink: 0;
+  }
 }
 
 .gender-radio-container {
