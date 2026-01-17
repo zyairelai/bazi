@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>八字命理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="datetime-container">
+    <div class="dropdowns-container">
+      <div class="gender-radio-container">
+        <label class="gender-radio-label">
+          <input type="radio" name="gender" value="male" id="genderMale" checked>
+          <span>男</span>
+        </label>
+        <label class="gender-radio-label">
+          <input type="radio" name="gender" value="female" id="genderFemale">
+          <span>女</span>
+        </label>
+      </div>
+      <select id="yearSelect" class="datetime-select"></select>
+      <select id="monthSelect" class="datetime-select"></select>
+      <select id="dateSelect" class="datetime-select"></select>
+      <select id="hourSelect" class="datetime-select"></select>
+    </div>
+  </div>
+
+  <button id="copyBtn">📋</button>
+</div>
+
+<div class="content">八字四柱 UI 區域</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
+<script src="calendar.js"></script>
+<script src="bazi.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
