@@ -198,4 +198,13 @@ body {
   border: 2px dashed var(--border-color);
   border-radius: 16px;
   background: #fff;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .content {
+    width: 100%;
+    margin: 20px 0;
+    padding: 40px 12px;
+  }
 }
