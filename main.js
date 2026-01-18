@@ -26,6 +26,18 @@ document.addEventListener('DOMContentLoaded', function () {
   updateBaziTable();
 });
 
+// Helper to get background color for an element
+function getElementBackgroundColor(element) {
+  switch (element) {
+    case '水': return "#DBEAFE";
+    case '火': return "#FEE2E2";
+    case '木': return "#DCFCE7";
+    case '土': return "#EFEBE9";
+    case '金': return "#FEF3C7";
+    default: return null;
+  }
+}
+
 // Darken hex color by a percentage (0-1). Returns hex string or original if invalid.
 function darkenColor(hex, amount = 0.2) {
   if (!hex || typeof hex !== 'string') return hex;
@@ -191,8 +203,28 @@ function updateBaziTable() {
       baziHighlights = highlightResults.baziHighlights;
       dayunHighlight = highlightResults.dayunHighlight;
 
+      // Calculate Stem Highlights (Identical Stems >= 3)
+      const allStems = {
+        year: baziResult.baziDetails.year ? baziResult.baziDetails.year.gan : null,
+        month: baziResult.baziDetails.month ? baziResult.baziDetails.month.gan : null,
+        day: baziResult.baziDetails.day ? baziResult.baziDetails.day.gan : null,
+        hour: baziResult.baziDetails.hour ? baziResult.baziDetails.hour.gan : null
+      };
+
+      const stemHighlights = calculateStemHighlights(allStems);
+
+      // Calculate Identical Branch Highlights (Identical Branches >= 3, excluding DaYun)
+      const identicalBranchHighlights = calculateIdenticalBranchHighlights(allBranches);
+
+      // Merge identical branch highlights into baziHighlights
+      Object.keys(identicalBranchHighlights).forEach(pillar => {
+        if (identicalBranchHighlights[pillar]) {
+          baziHighlights[pillar] = identicalBranchHighlights[pillar];
+        }
+      });
+
       // Populate Bazi Table with computed highlights
-      populateBaziTable(baziResult.baziDetails, baziHighlights);
+      populateBaziTable(baziResult.baziDetails, baziHighlights, stemHighlights);
     }
 
     // Populate DaYun Table
@@ -205,7 +237,7 @@ function updateBaziTable() {
   }
 }
 
-function populateBaziTable(baziDetails, externalHighlights = {}) {
+function populateBaziTable(baziDetails, branchHighlights = {}, stemHighlights = {}) {
   const pillars = ['year', 'month', 'day', 'hour'];
 
   pillars.forEach(pillar => {
@@ -240,21 +272,30 @@ function populateBaziTable(baziDetails, externalHighlights = {}) {
         stemEl.innerHTML = `<span class="bazi-char">${gan}</span>`;
       }
 
-      // Highlight Day Master cell
+      // Determine Stem Background and Font Weight
+      let stemBgColor = "";
+      let stemFontWeight = "";
+
+      // 1. Base color (Day Master)
       if (pillar === 'day' && gan && window.getStemColor) {
         const stemInfo = window.getStemColor(gan);
         const element = stemInfo.element;
-        let bgColor = "#FEF3C7";
-        switch (element) {
-          case '水': bgColor = "#DBEAFE"; break;
-          case '火': bgColor = "#FEE2E2"; break;
-          case '木': bgColor = "#DCFCE7"; break;
-          case '土': bgColor = "#EFEBE9"; break;
-          case '金': bgColor = "#FEF3C7"; break;
-        }
-        stemEl.style.backgroundColor = bgColor;
-        stemEl.style.fontWeight = "bold";
+        stemBgColor = getElementBackgroundColor(element) || "#FEF3C7";
+        stemFontWeight = "bold";
       }
+
+      // 2. Identical Stem Highlight override
+      // This might override the Day Master highlight if it's also one of the 3 identical stems,
+      // but usually the color is the same element color anyway.
+      const highlightColor = stemHighlights && stemHighlights[pillar];
+      if (highlightColor) {
+        stemBgColor = highlightColor;
+        stemFontWeight = "bold";
+      }
+
+      // Apply final styles
+      stemEl.style.backgroundColor = stemBgColor;
+      stemEl.style.fontWeight = stemFontWeight;
     }
 
     // Earthly Branch
@@ -273,7 +314,7 @@ function populateBaziTable(baziDetails, externalHighlights = {}) {
       }
 
       // Apply passed highlight
-      const highlightColor = externalHighlights && externalHighlights[pillar];
+      const highlightColor = branchHighlights && branchHighlights[pillar];
       if (highlightColor) {
         branchEl.style.backgroundColor = highlightColor;
         branchEl.style.fontWeight = "bold";
@@ -455,16 +496,7 @@ function calculateBranchHighlights(branchesMap, activeDayunBranch) {
 
   const getPillarsForBranch = (b) => pillars.filter(p => branchesMap[p] === b);
 
-  const getElementBgColor = (element) => {
-    switch (element) {
-      case '水': return "#DBEAFE";
-      case '火': return "#FEE2E2";
-      case '木': return "#DCFCE7";
-      case '土': return "#EFEBE9";
-      case '金': return "#FEF3C7";
-      default: return null;
-    }
-  };
+  const getElementBgColor = (element) => getElementBackgroundColor(element);
 
   // Prepare Combinations List (Normalize input since constants might be array or object)
   let combinations = [];
@@ -558,4 +590,91 @@ function calculateBranchHighlights(branchesMap, activeDayunBranch) {
 }
 
 window.calculateBranchHighlights = calculateBranchHighlights;
+
+/**
+ * Calculate highlights for Heavenly Stems (Identical Stems).
+ * 
+ * @param {Object} stemsMap - { year, month, day, hour }
+ * @returns {Object} { year: color, month: color, ... }
+ */
+function calculateStemHighlights(stemsMap) {
+  const pillars = ['year', 'month', 'day', 'hour'];
+  const stemsList = Object.values(stemsMap).filter(g => g);
+
+  // Count occurrences
+  const counts = {};
+  stemsList.forEach(gan => {
+    counts[gan] = (counts[gan] || 0) + 1;
+  });
+
+  const stemHighlights = { year: null, month: null, day: null, hour: null };
+
+  // Check for counts >= 3
+  Object.keys(counts).forEach(gan => {
+    if (counts[gan] >= 3) {
+      // Get color
+      if (window.getStemColor) {
+        const stemInfo = window.getStemColor(gan);
+        const color = getElementBackgroundColor(stemInfo.element);
+
+        if (color) {
+          // Highlight all pillars with this stem
+          pillars.forEach(pillar => {
+            if (stemsMap[pillar] === gan) {
+              stemHighlights[pillar] = color;
+            }
+          });
+        }
+      }
+    }
+  });
+
+  return stemHighlights;
+}
+
+window.calculateStemHighlights = calculateStemHighlights;
+
+/**
+ * Calculate highlights for Earthly Branches (Identical Branches >= 3).
+ * Does not take DaYun into consideration.
+ * 
+ * @param {Object} branchesMap - { year, month, day, hour }
+ * @returns {Object} { year: color, month: color, ... }
+ */
+function calculateIdenticalBranchHighlights(branchesMap) {
+  const pillars = ['year', 'month', 'day', 'hour'];
+  const branchesList = Object.values(branchesMap).filter(b => b);
+
+  // Count occurrences
+  const counts = {};
+  branchesList.forEach(zhi => {
+    counts[zhi] = (counts[zhi] || 0) + 1;
+  });
+
+  const branchHighlights = { year: null, month: null, day: null, hour: null };
+
+  // Check for counts >= 3
+  Object.keys(counts).forEach(zhi => {
+    if (counts[zhi] >= 3) {
+      // Get color
+      if (window.getBranchColor) {
+        const branchInfo = window.getBranchColor(zhi);
+        const color = getElementBackgroundColor(branchInfo.element);
+
+        if (color) {
+          // Highlight all pillars with this branch
+          pillars.forEach(pillar => {
+            if (branchesMap[pillar] === zhi) {
+              branchHighlights[pillar] = color;
+            }
+          });
+        }
+      }
+    }
+  });
+
+  return branchHighlights;
+}
+
+window.calculateIdenticalBranchHighlights = calculateIdenticalBranchHighlights;
 
