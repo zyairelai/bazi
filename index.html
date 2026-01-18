@@ -11,15 +11,27 @@
 <div class="top-bar">
   <div class="datetime-container">
     <div class="dropdowns-container">
-      <div class="gender-radio-container">
-        <label class="gender-radio-label">
-          <input type="radio" name="gender" value="male" id="genderMale" checked>
-          <span>男 Male</span>
-        </label>
-        <label class="gender-radio-label">
-          <input type="radio" name="gender" value="female" id="genderFemale">
-          <span>女 Female</span>
-        </label>
+      <div class="radio-containers-row">
+        <div class="gender-radio-container">
+          <label class="gender-radio-label">
+            <input type="radio" name="gender" value="male" id="genderMale" checked>
+            <span>男</span>
+          </label>
+          <label class="gender-radio-label">
+            <input type="radio" name="gender" value="female" id="genderFemale">
+            <span>女</span>
+          </label>
+        </div>
+        <div class="calendar-radio-container">
+          <label class="gender-radio-label">
+            <input type="radio" name="calendar" value="solar" id="calendarSolar" checked>
+            <span>阳历</span>
+          </label>
+          <label class="gender-radio-label">
+            <input type="radio" name="calendar" value="lunar" id="calendarLunar">
+            <span>阴历</span>
+          </label>
+        </div>
       </div>
       <div class="date-selects-row">
         <select id="yearSelect" class="datetime-select"></select>

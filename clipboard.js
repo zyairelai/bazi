@@ -22,8 +22,11 @@ function getCurrentBazi() {
   const genderRadio = document.querySelector('input[name="gender"]:checked');
   const gender = genderRadio ? genderRadio.value : 'male';
   
+  const calendarRadio = document.querySelector('input[name="calendar"]:checked');
+  const calendarType = calendarRadio ? calendarRadio.value : 'solar';
+  
   // Get bazi calculation result (contains header and dayun list)
-  const baziResult = calculateBazi(year, month, day, hour, gender);
+  const baziResult = calculateBazi(year, month, day, hour, gender, calendarType);
   
   // Filter DaYun for clipboard: only show periods that overlap with 2024-2040
   let result = baziResult.header;

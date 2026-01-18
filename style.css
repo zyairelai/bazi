@@ -67,6 +67,12 @@ body {
   flex-wrap: wrap;
 }
 
+.radio-containers-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .date-selects-row {
   display: flex;
   gap: 8px;
@@ -87,14 +93,19 @@ body {
     gap: 12px;
   }
   
-  /* First row: gender only */
-  .gender-radio-container {
+  /* First row: gender and calendar radio containers side by side */
+  .radio-containers-row {
+    display: flex;
+    gap: 8px;
     width: 100%;
-    max-width: 100%;
+  }
+  
+  .gender-radio-container,
+  .calendar-radio-container {
+    flex: 1;
     justify-content: center;
     padding: 8px;
     box-sizing: border-box;
-    overflow: hidden;
   }
   
   .gender-radio-label {
@@ -131,7 +142,8 @@ body {
   }
 }
 
-.gender-radio-container {
+.gender-radio-container,
+.calendar-radio-container {
   display: flex;
   gap: 12px;
   align-items: center;
