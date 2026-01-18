@@ -331,4 +331,29 @@ function populateDayunTable(result) {
       }
     }
   }
+  
+  // Highlight current DaYun column
+  try {
+    const currentYear = new Date().getFullYear();
+    for (let i = 0; i < maxColumns; i++) {
+      const dayun = i < dayunList.length ? dayunList[i] : null;
+      const isMainMatch = !!(dayun && currentYear >= dayun.startYear && currentYear <= dayun.endYear);
+      const isJiMatch = false; // reserved for additional matching conditions if needed
+      const ids = [
+        `dayun-${i}-shishen-top`,
+        `dayun-${i}-ganzhi`,
+        `dayun-${i}-shishen-bottom`,
+        `dayun-${i}-age`,
+        `dayun-${i}-year`
+      ];
+      ids.forEach(id => {
+        const item = document.getElementById(id);
+        if (item) {
+          item.style.backgroundColor = (isMainMatch || isJiMatch) ? "#FEF3C7" : "";
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('Highlight current DaYun failed:', e);
+  }
 }
