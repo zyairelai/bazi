@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   initCalendar();
   initClipboard();
+  initResetButton();
   // Add event listener for date changes to update Bazi table
   const yearSelect = document.getElementById('yearSelect');
   const monthSelect = document.getElementById('monthSelect');
@@ -24,6 +25,94 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initial update
   updateBaziTable();
 });
+
+function initResetButton() {
+  const resetBtn = document.getElementById('resetBtn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function() {
+      // Get all elements
+      const genderMale = document.getElementById('genderMale');
+      const calendarSolar = document.getElementById('calendarSolar');
+      const yearSelect = document.getElementById('yearSelect');
+      const monthSelect = document.getElementById('monthSelect');
+      const dateSelect = document.getElementById('dateSelect');
+      const hourSelect = document.getElementById('hourSelect');
+      
+      // Set values silently first (without triggering events)
+      if (genderMale) genderMale.checked = true;
+      if (calendarSolar) calendarSolar.checked = true;
+      if (yearSelect) yearSelect.value = '2000';
+      if (monthSelect) monthSelect.value = '6';
+      if (hourSelect) hourSelect.value = '9';
+      
+      // Update days dropdown manually to avoid flash
+      // This mimics updateDaysDropdown but sets the date immediately
+      if (yearSelect && monthSelect && dateSelect) {
+        const year = 2000;
+        const monthValue = 6;
+        
+        // Clear existing options
+        dateSelect.innerHTML = '';
+        
+        // Calculate last date for June 2000 (30 days)
+        const month = monthValue - 1;
+        const lastDate = new Date(year, month + 1, 0).getDate();
+        
+        // Populate days
+        for (let day = 1; day <= lastDate; day++) {
+          const option = document.createElement('option');
+          option.value = day;
+          option.textContent = String(day).padStart(2, '0') + '日';
+          dateSelect.appendChild(option);
+        }
+        
+        // Set date to 30 immediately (before any rendering)
+        dateSelect.value = '30';
+      }
+      
+      // Now trigger change events, but ensure date stays at 30
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        // Only trigger calendar change if it's not already solar
+        if (calendarSolar && !calendarSolar.checked) {
+          calendarSolar.dispatchEvent(new Event('change'));
+        }
+        
+        // Trigger year and month changes first
+        if (yearSelect) yearSelect.dispatchEvent(new Event('change'));
+        if (monthSelect) monthSelect.dispatchEvent(new Event('change'));
+        
+        // Wait for days dropdown to update, then set date to 30
+        setTimeout(() => {
+          // Ensure date dropdown has day 30
+          if (dateSelect) {
+            // Update days dropdown if needed
+            if (typeof updateDaysDropdown === 'function') {
+              updateDaysDropdown();
+            }
+            
+            // Set date to 30
+            const day30Option = Array.from(dateSelect.options).find(opt => opt.value === '30');
+            if (day30Option) {
+              dateSelect.value = '30';
+            } else {
+              // If day 30 doesn't exist, use the last day
+              const lastOption = dateSelect.options[dateSelect.options.length - 1];
+              if (lastOption) {
+                dateSelect.value = lastOption.value;
+              }
+            }
+          }
+          
+          // Now trigger date and hour changes
+          if (dateSelect) dateSelect.dispatchEvent(new Event('change'));
+          if (hourSelect) hourSelect.dispatchEvent(new Event('change'));
+          if (genderMale) genderMale.dispatchEvent(new Event('change'));
+        }, 50);
+      });
+    });
+  }
+}
 
 function updateBaziTable() {
   try {

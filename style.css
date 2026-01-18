@@ -85,6 +85,28 @@ body {
   align-items: center;
 }
 
+.time-button-row button {
+  padding: 8px 14px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 1px solid #c5cbd6;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.time-button-row button:hover {
+  background: #f0f2f6;
+}
+
+.time-button-row button:active {
+  transform: scale(0.95);
+}
+
 @media (max-width: 768px) {
   .dropdowns-container {
     flex-direction: column;
@@ -356,6 +378,16 @@ body {
   
   .bazi-table tbody th {
     width: 60px;
+  }
+  
+  .bazi-cell .element-circle {
+    width: 18px;
+    height: 18px;
+    left: calc(50% + 0.7em);
+  }
+  
+  .bazi-cell .element-text {
+    font-size: 11px;
   }
 }
 

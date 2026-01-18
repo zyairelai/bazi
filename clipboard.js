@@ -25,21 +25,30 @@ function getCurrentBazi() {
   const calendarRadio = document.querySelector('input[name="calendar"]:checked');
   const calendarType = calendarRadio ? calendarRadio.value : 'solar';
   
-  // Get bazi calculation result (contains header and dayun list)
+  // Get bazi calculation result
   const baziResult = calculateBazi(year, month, day, hour, gender, calendarType);
   
-  // Filter DaYun for clipboard: only show periods that overlap with 2024-2040
-  let result = baziResult.header;
+  // Get dayun calculation result
+  let dayunResult = { dayunList: [] };
+  if (baziResult && baziResult.eightChar) {
+    dayunResult = calculateDayun(baziResult.eightChar, gender, baziResult.birthYear);
+  }
   
-  for (let i = 0; i < baziResult.dayunList.length; i++) {
-    const daYun = baziResult.dayunList[i];
-    const sYear = daYun.startYear;
-    const eYear = daYun.endYear;
-    const ganZhi = daYun.ganZhi;
-    
-    // Filter: only show DaYun that overlaps with 2024-2040
-    if (eYear >= 2024 && sYear <= 2040) {
-      result += `${sYear}-${eYear} ${ganZhi}大运\n`;
+  // Format output: header + dayun list
+  let result = baziResult.header || '';
+  
+  // Add DaYun periods - only show periods that overlap with 2024-2040
+  if (dayunResult && dayunResult.dayunList) {
+    for (let i = 0; i < dayunResult.dayunList.length; i++) {
+      const daYun = dayunResult.dayunList[i];
+      const sYear = daYun.startYear;
+      const eYear = daYun.endYear;
+      const ganZhi = daYun.ganZhi;
+      
+      // Filter: only show DaYun that overlaps with 2024-2040
+      if (ganZhi && eYear >= 2024 && sYear <= 2040) {
+        result += `${sYear}-${eYear} ${ganZhi}大运\n`;
+      }
     }
   }
   
