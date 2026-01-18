@@ -161,13 +161,13 @@ function populateBaziTable(baziDetails) {
   pillars.forEach(pillar => {
     const details = baziDetails[pillar];
     if (!details) {
-      // Clear hour column if no hour data
+      // Show dash for hour column if no time provided
       if (pillar === 'hour') {
-        document.getElementById(`${pillar}-main-star`).textContent = '';
-        document.getElementById(`${pillar}-stem`).textContent = '';
-        document.getElementById(`${pillar}-branch`).textContent = '';
-        document.getElementById(`${pillar}-hidden`).textContent = '';
-        document.getElementById(`${pillar}-auxiliary`).textContent = '';
+        const ids = ['main-star', 'stem', 'branch', 'hidden', 'auxiliary'];
+        ids.forEach(suffix => {
+          const el = document.getElementById(`${pillar}-${suffix}`);
+          if (el) el.textContent = '-';
+        });
       }
       return;
     }
