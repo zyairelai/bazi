@@ -46,11 +46,127 @@
   </div>
 </div>
 
-<div class="content">八字四柱 UI 區域</div>
-<div class="content">十年大运 UI 區域</div>
+<div class="content-container">
+  <div class="content content-bazi">
+    <h2 class="content-title">八字排盘</h2>
+    <table class="bazi-table">
+      <thead>
+        <tr>
+          <th class="corner-cell"></th>
+          <th>年柱</th>
+          <th>月柱</th>
+          <th>日柱</th>
+          <th>时柱</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>主星</th>
+          <td class="bazi-cell" id="year-main-star"></td>
+          <td class="bazi-cell" id="month-main-star"></td>
+          <td class="bazi-cell" id="day-main-star"></td>
+          <td class="bazi-cell" id="hour-main-star"></td>
+        </tr>
+        <tr>
+          <th>天干</th>
+          <td class="bazi-cell" id="year-stem"></td>
+          <td class="bazi-cell" id="month-stem"></td>
+          <td class="bazi-cell" id="day-stem"></td>
+          <td class="bazi-cell" id="hour-stem"></td>
+        </tr>
+        <tr>
+          <th>地支</th>
+          <td class="bazi-cell" id="year-branch"></td>
+          <td class="bazi-cell" id="month-branch"></td>
+          <td class="bazi-cell" id="day-branch"></td>
+          <td class="bazi-cell" id="hour-branch"></td>
+        </tr>
+        <tr>
+          <th>藏干</th>
+          <td class="bazi-cell" id="year-hidden"></td>
+          <td class="bazi-cell" id="month-hidden"></td>
+          <td class="bazi-cell" id="day-hidden"></td>
+          <td class="bazi-cell" id="hour-hidden"></td>
+        </tr>
+        <tr>
+          <th>副星</th>
+          <td class="bazi-cell" id="year-auxiliary"></td>
+          <td class="bazi-cell" id="month-auxiliary"></td>
+          <td class="bazi-cell" id="day-auxiliary"></td>
+          <td class="bazi-cell" id="hour-auxiliary"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="content content-dayun">
+    <h2 class="content-title">大运走势</h2>
+    <table class="dayun-table">
+      <thead>
+        <tr>
+          <th colspan="7" class="dayun-header">
+            <div class="dayun-header-content">
+              <div class="dayun-header-line">起运: <span id="dayun-start-luck"></span></div>
+              <div class="dayun-header-line">交运: <span id="dayun-transition-date"></span></div>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="dayun-cell" id="dayun-0-shishen-top"></td>
+          <td class="dayun-cell" id="dayun-1-shishen-top"></td>
+          <td class="dayun-cell" id="dayun-2-shishen-top"></td>
+          <td class="dayun-cell" id="dayun-3-shishen-top"></td>
+          <td class="dayun-cell" id="dayun-4-shishen-top"></td>
+          <td class="dayun-cell" id="dayun-5-shishen-top"></td>
+          <td class="dayun-cell" id="dayun-6-shishen-top"></td>
+        </tr>
+        <tr>
+          <td class="dayun-cell" id="dayun-0-ganzhi"></td>
+          <td class="dayun-cell" id="dayun-1-ganzhi"></td>
+          <td class="dayun-cell" id="dayun-2-ganzhi"></td>
+          <td class="dayun-cell" id="dayun-3-ganzhi"></td>
+          <td class="dayun-cell" id="dayun-4-ganzhi"></td>
+          <td class="dayun-cell" id="dayun-5-ganzhi"></td>
+          <td class="dayun-cell" id="dayun-6-ganzhi"></td>
+        </tr>
+        <tr>
+          <td class="dayun-cell" id="dayun-0-shishen-bottom"></td>
+          <td class="dayun-cell" id="dayun-1-shishen-bottom"></td>
+          <td class="dayun-cell" id="dayun-2-shishen-bottom"></td>
+          <td class="dayun-cell" id="dayun-3-shishen-bottom"></td>
+          <td class="dayun-cell" id="dayun-4-shishen-bottom"></td>
+          <td class="dayun-cell" id="dayun-5-shishen-bottom"></td>
+          <td class="dayun-cell" id="dayun-6-shishen-bottom"></td>
+        </tr>
+        <tr>
+          <td class="dayun-cell" id="dayun-0-age"></td>
+          <td class="dayun-cell" id="dayun-1-age"></td>
+          <td class="dayun-cell" id="dayun-2-age"></td>
+          <td class="dayun-cell" id="dayun-3-age"></td>
+          <td class="dayun-cell" id="dayun-4-age"></td>
+          <td class="dayun-cell" id="dayun-5-age"></td>
+          <td class="dayun-cell" id="dayun-6-age"></td>
+        </tr>
+        <tr>
+          <td class="dayun-cell" id="dayun-0-year"></td>
+          <td class="dayun-cell" id="dayun-1-year"></td>
+          <td class="dayun-cell" id="dayun-2-year"></td>
+          <td class="dayun-cell" id="dayun-3-year"></td>
+          <td class="dayun-cell" id="dayun-4-year"></td>
+          <td class="dayun-cell" id="dayun-5-year"></td>
+          <td class="dayun-cell" id="dayun-6-year"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
+<script src="constants.js"></script>
+<script src="color.js"></script>
 <script src="bazi.js"></script>
+<script src="dayun.js"></script>
 <script src="calendar.js"></script>
 <script src="clipboard.js"></script>
 <script src="main.js"></script>

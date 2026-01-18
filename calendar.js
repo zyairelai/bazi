@@ -421,6 +421,11 @@ function updateDate() {
   previousYear = year;
   
   renderUI();
+  
+  // Update Bazi table if function exists
+  if (typeof updateBaziTable === 'function') {
+    updateBaziTable();
+  }
 }
 
 function renderUI() {

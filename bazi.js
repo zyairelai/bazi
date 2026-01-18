@@ -1,3 +1,63 @@
+// Helper function to calculate 十神 (Ten Gods) between two stems
+// Make it globally available for dayun.js
+window.calculateShiShen = function(dayGan, targetGan) {
+  if (!dayGan || !targetGan || !window.STEM_INFO || !window.SHI_SHEN_MAP) {
+    return '';
+  }
+  
+  const dayInfo = window.STEM_INFO[dayGan];
+  const targetInfo = window.STEM_INFO[targetGan];
+  
+  if (!dayInfo || !targetInfo) {
+    return '';
+  }
+  
+  const dayElement = dayInfo.element;
+  const targetElement = targetInfo.element;
+  const dayPolarity = dayInfo.polarity;
+  const targetPolarity = targetInfo.polarity;
+  const samePolarity = dayPolarity === targetPolarity;
+  
+  // Same element
+  if (dayElement === targetElement) {
+    return samePolarity ? window.SHI_SHEN_MAP.SAME_ELEMENT.same : window.SHI_SHEN_MAP.SAME_ELEMENT.different;
+  }
+  
+  // Check if target generates day master
+  const generatesMe = window.ELEMENT_RELATIONSHIPS.generating[targetElement] === dayElement;
+  if (generatesMe) {
+    return samePolarity ? window.SHI_SHEN_MAP.GENERATES_ME.same : window.SHI_SHEN_MAP.GENERATES_ME.different;
+  }
+  
+  // Check if day master generates target
+  const iGenerate = window.ELEMENT_RELATIONSHIPS.generating[dayElement] === targetElement;
+  if (iGenerate) {
+    return samePolarity ? window.SHI_SHEN_MAP.I_GENERATE.same : window.SHI_SHEN_MAP.I_GENERATE.different;
+  }
+  
+  // Check if target overcomes day master
+  const overcomesMe = window.ELEMENT_RELATIONSHIPS.overcoming[targetElement] === dayElement;
+  if (overcomesMe) {
+    return samePolarity ? window.SHI_SHEN_MAP.OVERCOMES_ME.same : window.SHI_SHEN_MAP.OVERCOMES_ME.different;
+  }
+  
+  // Check if day master overcomes target
+  const iOvercome = window.ELEMENT_RELATIONSHIPS.overcoming[dayElement] === targetElement;
+  if (iOvercome) {
+    return samePolarity ? window.SHI_SHEN_MAP.I_OVERCOME.same : window.SHI_SHEN_MAP.I_OVERCOME.different;
+  }
+  
+  return '';
+};
+
+// Helper function to get hidden stems from branch using constants
+function getHiddenGanFromConstants(zhi) {
+  if (!zhi || !window.HIDDEN_GANS) {
+    return [];
+  }
+  return window.HIDDEN_GANS[zhi] || [];
+}
+
 function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
   try {
     // 1. 根据日历类型初始化对象
@@ -135,39 +195,115 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
       result += '\n';
     }
 
-    // 4. 计算大运 (Da Yun) - from birth to age 80
-    // gender 为 'male' 传 1, 否则传 0
-    const isMale = (gender === 'male' || gender === 'm' || gender === '1');
-    const yun = eightChar.getYun(isMale ? 1 : 0);
-    const dayunList = yun.getDaYun();
-    
-    // Calculate age 80 year (birth year + 80)
-    const birthYear = parseInt(year);
-    const age80Year = birthYear + 80;
-
-    // 5. 过滤大运：显示从出生到80岁期间的DaYun，且必须有干支
-    const filteredDayun = [];
-    for (let i = 0; i < dayunList.length; i++) {
-      const daYun = dayunList[i];
-      const sYear = daYun.getStartYear();
-      const eYear = daYun.getEndYear();
-      const ganZhi = daYun.getGanZhi();
-
-      // 逻辑：起止年份只要重叠了出生到80岁期间就显示，且必须有干支值
-      // If DaYun period overlaps with birth to age 80 (e.g., 79-88 overlaps with birth to 80)
-      if (eYear >= birthYear && sYear <= age80Year && ganZhi && ganZhi.trim() !== '') {
-        filteredDayun.push({
-          startYear: sYear,
-          endYear: eYear,
-          ganZhi: ganZhi
-        });
+    // Helper function to get hidden gan (藏干) - using constants
+    function getHiddenGan(lunarObj, pillar) {
+      try {
+        let zhiChar = '';
+        if (pillar === 'year') {
+          const yearGz = eightChar.getYear();
+          zhiChar = yearGz && yearGz.length >= 2 ? yearGz.charAt(1) : '';
+        } else if (pillar === 'month') {
+          const monthGz = eightChar.getMonth();
+          zhiChar = monthGz && monthGz.length >= 2 ? monthGz.charAt(1) : '';
+        } else if (pillar === 'day') {
+          const dayGz = eightChar.getDay();
+          zhiChar = dayGz && dayGz.length >= 2 ? dayGz.charAt(1) : '';
+        } else if (pillar === 'hour') {
+          zhiChar = hourGz && hourGz.length >= 2 ? hourGz.charAt(1) : '';
+        }
+        
+        if (zhiChar && window.HIDDEN_GANS && window.HIDDEN_GANS[zhiChar]) {
+          return window.HIDDEN_GANS[zhiChar].join('');
+        }
+      } catch (e) {
+        console.warn(`Error getting hidden gan for ${pillar}:`, e);
       }
+      return '';
     }
 
-    // Return object with header and dayun list
+    // Get day master (日干) for 十神 calculations
+    const dayGan = dayGz && dayGz.length >= 1 ? dayGz.charAt(0) : '';
+    
+    // Extract detailed Bazi information for table display
+    const baziDetails = {
+      year: (() => {
+        const gan = yearGz && yearGz.length >= 1 ? yearGz.charAt(0) : '';
+        const zhi = yearGz && yearGz.length >= 2 ? yearGz.charAt(1) : '';
+        const hidden = getHiddenGan(lunar, 'year');
+        const hiddenArray = hidden ? hidden.split('') : [];
+        // 主星: 十神 following the 天干 (relative to day master)
+        const shishen = calculateShiShen(dayGan, gan);
+        // 副星: 十神 following the 藏干 (relative to day master)
+        const fuxing = hiddenArray.map(h => calculateShiShen(dayGan, h)).filter(h => h);
+        
+        return {
+          ganzhi: yearGz,
+          gan: gan,
+          zhi: zhi,
+          hidden: hidden,
+          shishen: shishen,
+          fuxing: fuxing
+        };
+      })(),
+      month: (() => {
+        const gan = monthGz && monthGz.length >= 1 ? monthGz.charAt(0) : '';
+        const zhi = monthGz && monthGz.length >= 2 ? monthGz.charAt(1) : '';
+        const hidden = getHiddenGan(lunar, 'month');
+        const hiddenArray = hidden ? hidden.split('') : [];
+        const shishen = calculateShiShen(dayGan, gan);
+        const fuxing = hiddenArray.map(h => calculateShiShen(dayGan, h)).filter(h => h);
+        
+        return {
+          ganzhi: monthGz,
+          gan: gan,
+          zhi: zhi,
+          hidden: hidden,
+          shishen: shishen,
+          fuxing: fuxing
+        };
+      })(),
+      day: (() => {
+        const gan = dayGz && dayGz.length >= 1 ? dayGz.charAt(0) : '';
+        const zhi = dayGz && dayGz.length >= 2 ? dayGz.charAt(1) : '';
+        const hidden = getHiddenGan(lunar, 'day');
+        const hiddenArray = hidden ? hidden.split('') : [];
+        
+        return {
+          ganzhi: dayGz,
+          gan: gan,
+          zhi: zhi,
+          hidden: hidden,
+          shishen: '日元', // Day Master
+          fuxing: hiddenArray.map(h => calculateShiShen(dayGan, h)).filter(h => h)
+        };
+      })(),
+      hour: hasHour ? (() => {
+        const gan = hourGz && hourGz.length >= 1 ? hourGz.charAt(0) : '';
+        const zhi = hourGz && hourGz.length >= 2 ? hourGz.charAt(1) : '';
+        const hidden = getHiddenGan(lunar, 'hour');
+        const hiddenArray = hidden ? hidden.split('') : [];
+        const shishen = calculateShiShen(dayGan, gan);
+        const fuxing = hiddenArray.map(h => calculateShiShen(dayGan, h)).filter(h => h);
+        
+        return {
+          ganzhi: hourGz,
+          gan: gan,
+          zhi: zhi,
+          hidden: hidden,
+          shishen: shishen,
+          fuxing: fuxing
+        };
+      })() : null
+    };
+
+    // Return object with header and detailed bazi info
+    const birthYear = parseInt(year);
     return {
       header: result,
-      dayunList: filteredDayun
+      baziDetails: baziDetails,
+      eightChar: eightChar,
+      lunar: lunar,
+      birthYear: birthYear
     };
 
   } catch (error) {
