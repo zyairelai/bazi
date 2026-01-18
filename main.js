@@ -26,6 +26,26 @@ document.addEventListener('DOMContentLoaded', function() {
   updateBaziTable();
 });
 
+// Darken hex color by a percentage (0-1). Returns hex string or original if invalid.
+function darkenColor(hex, amount = 0.2) {
+  if (!hex || typeof hex !== 'string') return hex;
+  const m = hex.trim().match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+  if (!m) return hex;
+  let h = m[1];
+  if (h.length === 3) {
+    h = h.split('').map(c => c + c).join('');
+  }
+  const num = parseInt(h, 16);
+  let r = (num >> 16) & 0xff;
+  let g = (num >> 8) & 0xff;
+  let b = num & 0xff;
+  r = Math.max(0, Math.min(255, Math.round(r * (1 - amount))));
+  g = Math.max(0, Math.min(255, Math.round(g * (1 - amount))));
+  b = Math.max(0, Math.min(255, Math.round(b * (1 - amount))));
+  const out = (r << 16) | (g << 8) | b;
+  return '#' + out.toString(16).padStart(6, '0');
+}
+
 function initResetButton() {
   const resetBtn = document.getElementById('resetBtn');
   if (resetBtn) {
@@ -272,9 +292,23 @@ function populateDayunTable(result) {
     const ganzhiEl = document.getElementById(`dayun-${i}-ganzhi`);
     if (ganzhiEl) {
       if (i < dayunList.length) {
-        // Show GanZhi for each DaYun
+        // Show GanZhi for each DaYun with 五行 text colors
         const dayun = dayunList[i];
-        ganzhiEl.textContent = dayun ? dayun.ganZhi : '';
+        const gz = dayun ? dayun.ganZhi : '';
+        if (gz && gz.length >= 2 && typeof window.getStemColor === 'function' && typeof window.getBranchColor === 'function') {
+          const gan = gz.charAt(0);
+          const zhi = gz.charAt(1);
+          const stemInfo = window.getStemColor(gan) || {};
+          const branchInfo = window.getBranchColor(zhi) || {};
+          const ganColor = stemInfo.color || '';
+          const zhiColor = branchInfo.color || '';
+          const ganSpan = `<span style="color:${ganColor};font-weight:700">${gan}</span>`;
+          const zhiSpan = `<span style="color:${zhiColor};font-weight:700">${zhi}</span>`;
+          ganzhiEl.innerHTML = `${ganSpan}${zhiSpan}`;
+        } else {
+          // Fallback to plain text if mapping unavailable
+          ganzhiEl.textContent = gz || '';
+        }
       } else {
         ganzhiEl.textContent = '';
       }
