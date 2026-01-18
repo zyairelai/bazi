@@ -134,6 +134,7 @@ function initResetButton() {
   }
 }
 
+
 function updateBaziTable() {
   try {
     const year = parseInt(document.getElementById('yearSelect').value);
@@ -152,36 +153,64 @@ function updateBaziTable() {
     // Calculate Bazi
     const baziResult = calculateBazi(year, month, day, hour, gender, calendarType);
 
-    if (baziResult && baziResult.baziDetails) {
-      populateBaziTable(baziResult.baziDetails);
-    }
+    // Prepare variables for DaYun calculation
+    let currentDaYunBranch = null;
+    let dayunHighlight = null;
+    let baziHighlights = null;
+    let combinedResult = null;
 
-    // Calculate Dayun using eightChar from Bazi result
     if (baziResult && baziResult.eightChar && baziResult.baziDetails && baziResult.baziDetails.day) {
       const dayGan = baziResult.baziDetails.day.gan; // 日干
       const dayunResult = calculateDayun(baziResult.eightChar, gender, baziResult.birthYear, dayGan);
 
-      // Combine results for populateDayunTable
-      const combinedResult = {
+      // Identify Current DaYun Branch
+      const currentYear = new Date().getFullYear();
+      if (dayunResult.dayunList) {
+        const activeDayun = dayunResult.dayunList.find(d => currentYear >= d.startYear && currentYear <= d.endYear);
+        if (activeDayun && activeDayun.ganZhi) {
+          currentDaYunBranch = activeDayun.ganZhi.charAt(1);
+        }
+      }
+
+      combinedResult = {
         ...baziResult,
         ...dayunResult
       };
-
-      populateDayunTable(combinedResult);
     }
+
+    // Calculate Highlights (knowing Bazi + DaYun)
+    if (baziResult && baziResult.baziDetails) {
+      const allBranches = {
+        year: baziResult.baziDetails.year ? baziResult.baziDetails.year.zhi : null,
+        month: baziResult.baziDetails.month ? baziResult.baziDetails.month.zhi : null,
+        day: baziResult.baziDetails.day ? baziResult.baziDetails.day.zhi : null,
+        hour: baziResult.baziDetails.hour ? baziResult.baziDetails.hour.zhi : null
+      };
+
+      const highlightResults = calculateBranchHighlights(allBranches, currentDaYunBranch);
+      baziHighlights = highlightResults.baziHighlights;
+      dayunHighlight = highlightResults.dayunHighlight;
+
+      // Populate Bazi Table with computed highlights
+      populateBaziTable(baziResult.baziDetails, baziHighlights);
+    }
+
+    // Populate DaYun Table
+    if (combinedResult) {
+      populateDayunTable(combinedResult, dayunHighlight);
+    }
+
   } catch (error) {
     console.error('Error updating Bazi table:', error);
   }
 }
 
-function populateBaziTable(baziDetails) {
+function populateBaziTable(baziDetails, externalHighlights = {}) {
   const pillars = ['year', 'month', 'day', 'hour'];
-  const pillarNames = { year: 'year', month: 'month', day: 'day', hour: 'hour' };
 
   pillars.forEach(pillar => {
     const details = baziDetails[pillar];
     if (!details) {
-      // Show dash for hour column if no time provided
       if (pillar === 'hour') {
         const ids = ['main-star', 'stem', 'branch', 'hidden', 'auxiliary'];
         ids.forEach(suffix => {
@@ -192,13 +221,11 @@ function populateBaziTable(baziDetails) {
       return;
     }
 
-    // Main Star (主星) - using shishen
+    // Main Star
     const mainStarEl = document.getElementById(`${pillar}-main-star`);
-    if (mainStarEl) {
-      mainStarEl.textContent = details.shishen || '';
-    }
+    if (mainStarEl) mainStarEl.textContent = details.shishen || '';
 
-    // Heavenly Stem (天干) - one character with element wrapped in colored circle
+    // Heavenly Stem
     const stemEl = document.getElementById(`${pillar}-stem`);
     if (stemEl) {
       const gan = details.gan || '';
@@ -217,23 +244,20 @@ function populateBaziTable(baziDetails) {
       if (pillar === 'day' && gan && window.getStemColor) {
         const stemInfo = window.getStemColor(gan);
         const element = stemInfo.element;
-        let bgColor = "#FEF3C7"; // Default Metal/Gold
-
-        // Map elements to light background colors
+        let bgColor = "#FEF3C7";
         switch (element) {
-          case '水': bgColor = "#DBEAFE"; break; // Water - Light Blue
-          case '火': bgColor = "#FEE2E2"; break; // Fire - Light Red/Pink
-          case '木': bgColor = "#DCFCE7"; break; // Wood - Light Green
-          case '土': bgColor = "#EFEBE9"; break; // Earth - Light Brown
-          case '金': bgColor = "#FEF3C7"; break; // Metal - Gold (Default)
+          case '水': bgColor = "#DBEAFE"; break;
+          case '火': bgColor = "#FEE2E2"; break;
+          case '木': bgColor = "#DCFCE7"; break;
+          case '土': bgColor = "#EFEBE9"; break;
+          case '金': bgColor = "#FEF3C7"; break;
         }
-
         stemEl.style.backgroundColor = bgColor;
         stemEl.style.fontWeight = "bold";
       }
     }
 
-    // Earthly Branch (地支) - one character with element wrapped in colored circle
+    // Earthly Branch
     const branchEl = document.getElementById(`${pillar}-branch`);
     if (branchEl) {
       const zhi = details.zhi || '';
@@ -247,28 +271,32 @@ function populateBaziTable(baziDetails) {
       } else {
         branchEl.innerHTML = `<span class="bazi-char">${zhi}</span>`;
       }
+
+      // Apply passed highlight
+      const highlightColor = externalHighlights && externalHighlights[pillar];
+      if (highlightColor) {
+        branchEl.style.backgroundColor = highlightColor;
+        branchEl.style.fontWeight = "bold";
+      } else {
+        branchEl.style.backgroundColor = "";
+        branchEl.style.fontWeight = "";
+      }
     }
 
-    // Hidden Stems (藏干)
+    // Hidden Stems
     const hiddenEl = document.getElementById(`${pillar}-hidden`);
     if (hiddenEl) {
-      // hidden is typically a string like "己癸辛" or an array
       let hiddenText = '';
-      if (typeof details.hidden === 'string') {
-        hiddenText = details.hidden;
-      } else if (Array.isArray(details.hidden)) {
-        hiddenText = details.hidden.join('');
-      } else if (details.hidden && details.hidden.toString) {
-        hiddenText = details.hidden.toString();
-      }
+      if (typeof details.hidden === 'string') hiddenText = details.hidden;
+      else if (Array.isArray(details.hidden)) hiddenText = details.hidden.join('');
+      else if (details.hidden) hiddenText = details.hidden.toString();
       hiddenEl.textContent = hiddenText;
     }
 
-    // Auxiliary Stars (副星) - 十神 following the 藏干 (array of 十神)
+    // Auxiliary Stars
     const auxiliaryEl = document.getElementById(`${pillar}-auxiliary`);
     if (auxiliaryEl) {
       if (Array.isArray(details.fuxing) && details.fuxing.length > 0) {
-        // Display 副星 as lines (one per hidden stem's 十神)
         auxiliaryEl.innerHTML = details.fuxing.join('<br>');
       } else {
         auxiliaryEl.textContent = '';
@@ -277,111 +305,73 @@ function populateBaziTable(baziDetails) {
   });
 }
 
-function populateDayunTable(result) {
-  // Populate 起运 and 交运 in the header
+function populateDayunTable(result, dayunHighlightColor) {
   const qiyunEl = document.getElementById('dayun-start-luck');
   const jiaoyunEl = document.getElementById('dayun-transition-date');
 
-  if (qiyunEl && result.qiyunInfo) {
-    qiyunEl.textContent = result.qiyunInfo;
-  }
-
-  if (jiaoyunEl && result.jiaoyunDate) {
-    jiaoyunEl.textContent = result.jiaoyunDate;
-  }
+  if (qiyunEl && result.qiyunInfo) qiyunEl.textContent = result.qiyunInfo;
+  if (jiaoyunEl && result.jiaoyunDate) jiaoyunEl.textContent = result.jiaoyunDate;
 
   const dayunList = result.dayunList || [];
-  const maxColumns = 7; // 7 columns in the table
+  const maxColumns = 7;
 
-  // Row 2 (shishen-top row, which is the 2nd row - index 1 in tbody): 十神 following the 天干
+  // Rows configuration to avoid repetition
+  const rows = [
+    { suffix: 'shishen-top', prop: 'shishenGan' },
+    { suffix: 'ganzhi', special: true }, // Special handling for GanZhi coloring
+    { suffix: 'shishen-bottom', prop: 'shishenHidden', array: true },
+    { suffix: 'age', special: true }, // Special handling for Age
+    { suffix: 'year', prop: 'startYear' }
+  ];
+
   for (let i = 0; i < maxColumns; i++) {
+    const dayun = i < dayunList.length ? dayunList[i] : null;
+
+    // 1. Shishen Top
     const shishenTopEl = document.getElementById(`dayun-${i}-shishen-top`);
-    if (shishenTopEl) {
-      if (i < dayunList.length) {
-        const dayun = dayunList[i];
-        shishenTopEl.textContent = dayun && dayun.shishenGan ? dayun.shishenGan : '';
-      } else {
-        shishenTopEl.textContent = '';
-      }
-    }
-  }
+    if (shishenTopEl) shishenTopEl.textContent = dayun && dayun.shishenGan ? dayun.shishenGan : '';
 
-  // Row 3 (ganzhi row, which is the 3rd row - index 2 in tbody): List DaYun GanZhi starting from the first one
-  for (let i = 0; i < maxColumns; i++) {
+    // 2. GanZhi
     const ganzhiEl = document.getElementById(`dayun-${i}-ganzhi`);
     if (ganzhiEl) {
-      if (i < dayunList.length) {
-        // Show GanZhi for each DaYun with 五行 text colors
-        const dayun = dayunList[i];
-        const gz = dayun ? dayun.ganZhi : '';
-        if (gz && gz.length >= 2 && typeof window.getStemColor === 'function' && typeof window.getBranchColor === 'function') {
+      if (dayun) {
+        const gz = dayun.ganZhi || '';
+        if (gz.length >= 2 && window.getStemColor && window.getBranchColor) {
           const gan = gz.charAt(0);
           const zhi = gz.charAt(1);
-          const stemInfo = window.getStemColor(gan) || {};
-          const branchInfo = window.getBranchColor(zhi) || {};
-          const ganColor = stemInfo.color || '';
-          const zhiColor = branchInfo.color || '';
-          const ganSpan = `<span style="color:${ganColor};font-weight:700">${gan}</span>`;
-          const zhiSpan = `<span style="color:${zhiColor};font-weight:700">${zhi}</span>`;
-          ganzhiEl.innerHTML = `${ganSpan}${zhiSpan}`;
+          const ganC = (window.getStemColor(gan) || {}).color || '';
+          const zhiC = (window.getBranchColor(zhi) || {}).color || '';
+          ganzhiEl.innerHTML = `<span style="color:${ganC};font-weight:700">${gan}</span><span style="color:${zhiC};font-weight:700">${zhi}</span>`;
         } else {
-          // Fallback to plain text if mapping unavailable
-          ganzhiEl.textContent = gz || '';
+          ganzhiEl.textContent = gz;
         }
       } else {
         ganzhiEl.textContent = '';
       }
     }
-  }
 
-  // Row 4 (shishen-bottom row, which is the 4th row - index 3 in tbody): 十神 following the 地支藏干
-  for (let i = 0; i < maxColumns; i++) {
+    // 3. Shishen Bottom
     const shishenBottomEl = document.getElementById(`dayun-${i}-shishen-bottom`);
     if (shishenBottomEl) {
-      if (i < dayunList.length) {
-        const dayun = dayunList[i];
-        if (dayun && Array.isArray(dayun.shishenHidden) && dayun.shishenHidden.length > 0) {
-          shishenBottomEl.innerHTML = dayun.shishenHidden.join('<br>');
-        } else {
-          shishenBottomEl.textContent = '';
-        }
+      if (dayun && Array.isArray(dayun.shishenHidden)) {
+        shishenBottomEl.innerHTML = dayun.shishenHidden.join('<br>');
       } else {
         shishenBottomEl.textContent = '';
       }
     }
-  }
 
-  // Row 5 (age row, which is the 5th row - index 4 in tbody): Age ranges like "2~11"
-  for (let i = 0; i < maxColumns; i++) {
+    // 4. Age
     const ageEl = document.getElementById(`dayun-${i}-age`);
     if (ageEl) {
-      if (i < dayunList.length) {
-        // Show age range for each DaYun
-        const dayun = dayunList[i];
-        if (dayun) {
-          const startAge = dayun.startAge || 0;
-          const endAge = dayun.endAge || 0;
-          ageEl.textContent = `${startAge}~${endAge}`;
-        } else {
-          ageEl.textContent = '';
-        }
-      } else {
-        ageEl.textContent = '';
-      }
+      if (dayun) ageEl.textContent = `${dayun.startAge || 0}~${dayun.endAge || 0}`;
+      else ageEl.textContent = '';
     }
-  }
 
-  // Row 6 (year row, which is the 6th row - index 5 in tbody): Starting years like "1999"
-  for (let i = 0; i < maxColumns; i++) {
+    // 5. Year
     const yearEl = document.getElementById(`dayun-${i}-year`);
     if (yearEl) {
-      if (i < dayunList.length) {
-        // Show starting year for each DaYun
-        const dayun = dayunList[i];
-        yearEl.textContent = dayun ? dayun.startYear : '';
-      } else {
-        yearEl.textContent = '';
-      }
+      if (dayun) yearEl.textContent = dayun.startYear;
+      else yearEl.textContent = '';
     }
   }
 
@@ -391,7 +381,7 @@ function populateDayunTable(result) {
     for (let i = 0; i < maxColumns; i++) {
       const dayun = i < dayunList.length ? dayunList[i] : null;
       const isMainMatch = !!(dayun && currentYear >= dayun.startYear && currentYear <= dayun.endYear);
-      const isJiMatch = false; // reserved for additional matching conditions if needed
+
       const ids = [
         `dayun-${i}-shishen-top`,
         `dayun-${i}-ganzhi`,
@@ -399,11 +389,45 @@ function populateDayunTable(result) {
         `dayun-${i}-age`,
         `dayun-${i}-year`
       ];
-      ids.forEach(id => {
+
+      ids.forEach((id, idx) => {
         const item = document.getElementById(id);
         if (item) {
-          item.style.backgroundColor = (isMainMatch || isJiMatch) ? "#FEF3C7" : "";
-          item.style.fontWeight = (isMainMatch || isJiMatch) ? "bold" : "";
+          // Reset styles first
+          item.style.backgroundColor = "";
+          item.style.fontWeight = "";
+          item.style.borderTop = "";
+          item.style.borderBottom = "";
+          item.style.borderLeft = "";
+          item.style.borderRight = "";
+
+          if (isMainMatch) {
+            item.style.fontWeight = "bold";
+
+            if (dayunHighlightColor) {
+              // Combo Mode: Just background color
+              item.style.backgroundColor = dayunHighlightColor;
+            } else {
+              // Default Mode: Background + Outline
+              item.style.backgroundColor = "#f8f9fa";
+
+              const borderStyle = "2px solid #3b82f6"; // Primary Blue
+
+              // Left and Right borders for all
+              item.style.borderLeft = borderStyle;
+              item.style.borderRight = borderStyle;
+
+              // Top border for first cell
+              if (idx === 0) {
+                item.style.borderTop = borderStyle;
+              }
+
+              // Bottom border for last cell
+              if (idx === ids.length - 1) {
+                item.style.borderBottom = borderStyle;
+              }
+            }
+          }
         }
       });
     }
@@ -411,3 +435,127 @@ function populateDayunTable(result) {
     console.warn('Highlight current DaYun failed:', e);
   }
 }
+
+/**
+ * Calculate highlights for Earthly Branches.
+ * 
+ * @param {Object} branchesMap - { year, month, day, hour }
+ * @param {string|null} activeDayunBranch - The branch of the current active DaYun
+ * @returns {Object} { baziHighlights: { pillar: color }, dayunHighlight: color|null }
+ */
+function calculateBranchHighlights(branchesMap, activeDayunBranch) {
+  const pillars = ['year', 'month', 'day', 'hour'];
+  const branchesList = Object.values(branchesMap).filter(b => b);
+  // Add active dayun branch to set of checking if present
+  const checkSet = new Set(branchesList);
+  if (activeDayunBranch) checkSet.add(activeDayunBranch);
+
+  const baziHighlights = { year: null, month: null, day: null, hour: null };
+  let dayunHighlight = null; // Will store color if dayun participates in combo
+
+  const getPillarsForBranch = (b) => pillars.filter(p => branchesMap[p] === b);
+
+  const getElementBgColor = (element) => {
+    switch (element) {
+      case '水': return "#DBEAFE";
+      case '火': return "#FEE2E2";
+      case '木': return "#DCFCE7";
+      case '土': return "#EFEBE9";
+      case '金': return "#FEF3C7";
+      default: return null;
+    }
+  };
+
+  // Prepare Combinations List (Normalize input since constants might be array or object)
+  let combinations = [];
+  if (Array.isArray(window.DIRECTIONAL_COMBINATIONS)) {
+    combinations = [...combinations, ...window.DIRECTIONAL_COMBINATIONS];
+  } else if (window.DIRECTIONAL_COMBINATIONS) {
+    combinations = [...combinations, ...Object.values(window.DIRECTIONAL_COMBINATIONS)];
+  }
+
+  if (Array.isArray(window.TRIPLE_COMBINATIONS)) {
+    combinations = [...combinations, ...window.TRIPLE_COMBINATIONS];
+  } else if (window.TRIPLE_COMBINATIONS) {
+    combinations = [...combinations, ...Object.values(window.TRIPLE_COMBINATIONS)];
+  }
+
+  // 1. Check Combinations
+  combinations.forEach(combo => {
+    const requiredBranches = combo.branches;
+    // Check if checkSet has all required branches
+    const allPresent = requiredBranches.every(b => checkSet.has(b));
+
+    if (allPresent) {
+      // Check if Dayun is participating (if Dayun is one of the required branches)
+      const isDayunParticipating = activeDayunBranch && requiredBranches.includes(activeDayunBranch);
+
+      const color = getElementBgColor(combo.resultingElement);
+      if (color) {
+        // Highlight Bazi branches
+        requiredBranches.forEach(branch => {
+          // Highlight matching pillars
+          getPillarsForBranch(branch).forEach(pillar => {
+            // Logic: If daYun is interacting, we color all involved pillars. 
+            // Even if the Bazi already had the combo internally, we just re-color it (same color).
+            baziHighlights[pillar] = color;
+          });
+        });
+
+        // Highlight Dayun if participating
+        if (isDayunParticipating) {
+          dayunHighlight = color;
+        }
+      }
+    }
+  });
+
+  // 2. Check Punishments
+  const punishments = window.THREE_PUNISHMENTS || {};
+
+  // Bullying (丑戌未)
+  if (punishments.BULLYING) {
+    const required = punishments.BULLYING.branches;
+    if (required.every(b => checkSet.has(b))) {
+      const isDayunParticipating = activeDayunBranch && required.includes(activeDayunBranch);
+      const color = "#EFEBE9"; // Earth
+
+      required.forEach(branch => {
+        getPillarsForBranch(branch).forEach(pillar => {
+          baziHighlights[pillar] = color;
+        });
+      });
+
+      if (isDayunParticipating) dayunHighlight = color;
+    }
+  }
+
+  // Ingratitude (寅巳申)
+  if (punishments.INGRATITUDE) {
+    const required = punishments.INGRATITUDE.branches;
+    if (required.every(b => checkSet.has(b))) {
+      const isDayunParticipating = activeDayunBranch && required.includes(activeDayunBranch);
+
+      const branchColors = {
+        '寅': "#DCFCE7", // Wood
+        '巳': "#FEE2E2", // Fire
+        '申': "#FEF3C7"  // Gold
+      };
+
+      required.forEach(branch => {
+        getPillarsForBranch(branch).forEach(pillar => {
+          baziHighlights[pillar] = branchColors[branch];
+        });
+      });
+
+      if (isDayunParticipating) {
+        dayunHighlight = branchColors[activeDayunBranch];
+      }
+    }
+  }
+
+  return { baziHighlights, dayunHighlight };
+}
+
+window.calculateBranchHighlights = calculateBranchHighlights;
+
