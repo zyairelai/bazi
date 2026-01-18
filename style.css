@@ -445,7 +445,6 @@ body {
   justify-content: center;
   text-align: left;
   padding-left: 12px;
-  font-size: 16px;
 }
 
 .dayun-header-line {
@@ -456,13 +455,11 @@ body {
 }
 
 /* Differentiate font sizes for 起运 和 交运 values */
-.dayun-header-line:nth-child(1) span { /* 起运 值 */
-  font-size: 1em;
-  font-weight: 600;
-}
-.dayun-header-line:nth-child(2) span { /* 交运 值 */
-  font-size: 0.92em;
-  font-weight: 500;
+.dayun-header-line:nth-child(1) span,
+.dayun-header-line:nth-child(2) span {
+  font-size: 16px; /* Explicitly set to match the line */
+  font-weight: 600; /* Bold the values slightly to differentiate from labels */
+  display: inline-block;
 }
 
 .dayun-cell {
