@@ -656,8 +656,8 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   flex: 1;
-  padding: 0 24px 100px 24px;
-  /* Extra bottom padding for comfortable scroll */
+  padding: 0 24px 20px 24px;
+  /* Reduced bottom padding */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -687,6 +687,12 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+.history-item:active {
+  background: #dbeafe;
+  /* More prominent blue flash (blue-100) */
+  border-color: #3b82f6;
 }
 
 .history-item-name {
