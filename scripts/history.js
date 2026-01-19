@@ -5,15 +5,11 @@
     const historyModal = document.getElementById('historyModal');
     const closeHistoryBtn = document.getElementById('closeHistoryBtn');
     const historyList = document.getElementById('historyList');
-    const contextMenu = document.getElementById('contextMenu');
-    const editHistoryBtn = document.getElementById('editHistoryBtn');
-    const deleteHistoryBtn = document.getElementById('deleteHistoryBtn');
 
-    let currentContextMenuId = null;
-    let longPressTimer = null;
-    let isLongPress = false;
     let touchStartX = 0;
-    let touchStartY = 0;
+    let touchMoveX = 0;
+    let currentSwipeItem = null;
+    const MAX_SWIPE = 120; // Width of two buttons (60px each)
 
     // --- PWA Mode Check ---
     function checkStandalone() {
@@ -60,6 +56,14 @@
         const history = getHistory();
         history.unshift(entry);
         saveHistory(history);
+
+        // Enforce "original current DaYun" view after saving
+        if (typeof window.resetSelectedDayun === 'function') {
+            window.resetSelectedDayun();
+        }
+        if (typeof window.updateBaziTable === 'function') {
+            window.updateBaziTable();
+        }
     }
 
     function renderHistory() {
@@ -72,42 +76,130 @@
         }
 
         history.forEach(entry => {
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            item.innerHTML = `
-                <div class="history-item-name">${entry.name}</div>
-                <div class="history-item-date">${entry.year}-${entry.month}-${entry.date} ${entry.hour} (${entry.gender === 'male' ? 'Male' : 'Female'})</div>
+            const wrapper = document.createElement('div');
+            wrapper.className = 'history-item-wrapper';
+
+            wrapper.innerHTML = `
+                <div class="swipe-actions">
+                    <button class="action-btn edit-action" data-id="${entry.id}">🖋️</button>
+                    <button class="action-btn delete-action" data-id="${entry.id}">🗑️</button>
+                </div>
+                <div class="history-item" data-id="${entry.id}">
+                    <div class="history-item-name">${entry.name}</div>
+                    <div class="history-item-date">${entry.year}-${entry.month}-${entry.date} ${entry.hour} (${entry.gender === 'male' ? 'Male' : 'Female'})</div>
+                </div>
             `;
 
-            // Touch Events for Long Press
-            item.ontouchstart = (e) => handleTouchStart(e, entry);
-            item.ontouchend = (e) => handleTouchEnd(e, entry);
-            item.ontouchmove = handleTouchMove;
+            const item = wrapper.querySelector('.history-item');
+            const editBtn = wrapper.querySelector('.edit-action');
+            const deleteBtn = wrapper.querySelector('.delete-action');
 
-            // Mouse Events for testing
-            item.onmousedown = (e) => {
-                if (e.button === 0) { // Left click
-                    longPressTimer = setTimeout(() => {
-                        isLongPress = true;
-                        showContextMenu(e.clientX, e.clientY, entry.id);
-                    }, 600);
+            // Swipe Handlers
+            item.addEventListener('touchstart', (e) => {
+                handleTouchStart(e, item);
+            }, { passive: true });
+
+            item.addEventListener('touchmove', (e) => {
+                handleTouchMove(e, item);
+            }, { passive: false });
+
+            item.addEventListener('touchend', (e) => {
+                handleTouchEnd(e, item, entry);
+            });
+
+            // Mouse Click for Desktop (Non-touch devices)
+            item.addEventListener('click', (e) => {
+                // Only handle click if it wasn't a touch event (which we'll handle in touchend)
+                // Or if handleTouchEnd didn't preventDefault
+                if (e.defaultPrevented) return;
+
+                const offset = getXOffset(item);
+                if (offset === 0) {
+                    jumpToEntry(entry);
+                } else {
+                    closeAllSwipes();
                 }
+            });
+
+            // Action Handlers
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                editEntry(entry.id);
             };
-            item.onmouseup = () => {
-                clearTimeout(longPressTimer);
-                if (!isLongPress) jumpToEntry(entry);
-                isLongPress = false;
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteEntry(entry.id);
             };
 
-            // Prevent scroll/move during long press
-            item.oncontextmenu = (e) => e.preventDefault();
-
-            historyList.appendChild(item);
+            historyList.appendChild(wrapper);
         });
     }
 
+    function getXOffset(el) {
+        const transform = window.getComputedStyle(el).transform;
+        if (transform === 'none') return 0;
+        const matrix = transform.match(/matrix.*\((.+)\)/);
+        return matrix ? parseFloat(matrix[1].split(', ')[4]) : 0;
+    }
+
+    function closeAllSwipes() {
+        document.querySelectorAll('.history-item').forEach(item => {
+            item.style.transform = 'translateX(0px)';
+        });
+        currentSwipeItem = null;
+    }
+
+    function handleTouchStart(e, item) {
+        if (currentSwipeItem && currentSwipeItem !== item) {
+            closeAllSwipes();
+        }
+        touchStartX = e.touches[0].clientX;
+        touchMoveX = 0; // Reset accurately
+        item.style.transition = 'none';
+        currentSwipeItem = item;
+    }
+
+    function handleTouchMove(e, item) {
+        const touchX = e.touches[0].clientX;
+        touchMoveX = touchX - touchStartX;
+
+        // Only allow swiping left
+        let offset = Math.min(0, Math.max(-MAX_SWIPE, touchMoveX));
+
+        // If already open, start from -MAX_SWIPE
+        const currentOffset = getXOffset(item);
+        if (touchStartX > window.innerWidth - 100 && currentOffset < -50) {
+            // Heuristic: if swipe starts from the right side and it's already open
+            // We could improve this state tracking
+        }
+
+        item.style.transform = `translateX(${offset}px)`;
+
+        // Prevent page scroll if swiping horizontally
+        if (Math.abs(touchMoveX) > 10) {
+            e.preventDefault();
+        }
+    }
+
+    function handleTouchEnd(e, item, entry) {
+        item.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+        const currentOffset = Math.abs(getXOffset(item));
+
+        if (currentOffset > MAX_SWIPE / 2) {
+            item.style.transform = `translateX(-${MAX_SWIPE}px)`;
+        } else {
+            item.style.transform = 'translateX(0px)';
+
+            // If it was a quick tap, trigger jump and PREVENT ghost click
+            if (Math.abs(touchMoveX) < 10) {
+                e.preventDefault(); // Stop click event from firing on elements underneath
+                jumpToEntry(entry);
+            }
+            currentSwipeItem = null;
+        }
+    }
+
     function jumpToEntry(entry) {
-        // Current state check to avoid flashing if jumping to the same content
         const currentYear = document.getElementById('yearSelect').value;
         const currentMonth = document.getElementById('monthSelect').value;
         const currentDate = document.getElementById('dateSelect').value;
@@ -125,84 +217,44 @@
             return;
         }
 
-        // Reset DaYun selection to "current" after a jump
         if (typeof window.resetSelectedDayun === 'function') {
             window.resetSelectedDayun();
         }
 
-        // Update Gender
         const genderRadio = document.querySelector(`input[name="gender"][value="${entry.gender}"]`);
         if (genderRadio) genderRadio.checked = true;
 
-        // Update Calendar
         const calendarRadio = document.querySelector(`input[name="calendar"][value="${entry.calendar}"]`);
         if (calendarRadio) calendarRadio.checked = true;
 
-        // Update Selects
         document.getElementById('yearSelect').value = entry.year;
         document.getElementById('monthSelect').value = entry.month;
         document.getElementById('dateSelect').value = entry.date;
         document.getElementById('hourSelect').value = entry.hour;
 
-        // Trigger updates in main.js
-        if (typeof window.updateDate === 'function') {
-            window.updateDate();
-        }
-        if (typeof window.updateBaziTable === 'function') {
-            window.updateBaziTable();
-        }
+        if (typeof window.updateDate === 'function') window.updateDate();
+        if (typeof window.updateBaziTable === 'function') window.updateBaziTable();
 
         historyModal.style.display = 'none';
     }
 
-    // --- Touch Handling ---
-    function handleTouchStart(e, entry) {
-        isLongPress = false;
-        const touch = e.touches[0];
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
-
-        longPressTimer = setTimeout(() => {
-            isLongPress = true;
-            showContextMenu(touchStartX, touchStartY, entry.id);
-        }, 600);
-    }
-
-    function handleTouchMove(e) {
-        const touch = e.touches[0];
-        const moveX = Math.abs(touch.clientX - touchStartX);
-        const moveY = Math.abs(touch.clientY - touchStartY);
-
-        if (moveX > 10 || moveY > 10) {
-            clearTimeout(longPressTimer);
+    function editEntry(id) {
+        const history = getHistory();
+        const entry = history.find(h => h.id === id);
+        if (entry) {
+            const newName = prompt("Edit:", entry.name);
+            if (newName) {
+                entry.name = newName;
+                saveHistory(history);
+                renderHistory();
+            }
         }
     }
 
-    function handleTouchEnd(e, entry) {
-        clearTimeout(longPressTimer);
-        if (!isLongPress) {
-            jumpToEntry(entry);
-        }
-        // Small delay to prevent ghost clicks if needed
-        setTimeout(() => { isLongPress = false; }, 50);
-    }
-
-    // --- Context Menu ---
-    function showContextMenu(x, y, id) {
-        currentContextMenuId = id;
-        contextMenu.style.display = 'block';
-
-        // Position menu
-        const menuWidth = 120;
-        const menuHeight = 80;
-        let left = x;
-        let top = y;
-
-        if (left + menuWidth > window.innerWidth) left -= menuWidth;
-        if (top + menuHeight > window.innerHeight) top -= menuHeight;
-
-        contextMenu.style.left = left + 'px';
-        contextMenu.style.top = top + 'px';
+    function deleteEntry(id) {
+        const history = getHistory().filter(h => h.id !== id);
+        saveHistory(history);
+        renderHistory();
     }
 
     // --- Event Listeners ---
@@ -219,30 +271,6 @@
         if (e.target === historyModal) {
             historyModal.style.display = 'none';
         }
-        if (!contextMenu.contains(e.target)) {
-            contextMenu.style.display = 'none';
-        }
-    };
-
-    editHistoryBtn.onclick = () => {
-        const history = getHistory();
-        const entry = history.find(h => h.id === currentContextMenuId);
-        if (entry) {
-            const newName = prompt("Edit:", entry.name);
-            if (newName) {
-                entry.name = newName;
-                saveHistory(history);
-                renderHistory();
-            }
-        }
-        contextMenu.style.display = 'none';
-    };
-
-    deleteHistoryBtn.onclick = () => {
-        const history = getHistory().filter(h => h.id !== currentContextMenuId);
-        saveHistory(history);
-        renderHistory();
-        contextMenu.style.display = 'none';
     };
 
 })();

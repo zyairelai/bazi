@@ -643,27 +643,33 @@ body {
   color: #9ca3af;
 }
 
-/* History List */
+/* Swipe-to-Action History List */
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  overflow-x: hidden;
+}
+
+.history-item-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f3f4f6;
 }
 
 .history-item {
+  position: relative;
+  z-index: 2;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 12px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   user-select: none;
   -webkit-user-select: none;
-  position: relative;
-}
-
-.history-item:active {
-  background: rgba(255, 255, 255, 0.8);
+  box-sizing: border-box;
 }
 
 .history-item-name {
@@ -678,36 +684,42 @@ body {
   color: #6b7280;
 }
 
-/* Context Menu */
-.context-menu {
-  position: fixed;
-  z-index: 3000;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  min-width: 120px;
+/* Swipe Actions */
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  z-index: 1;
 }
 
-.context-menu button {
-  width: 100%;
-  padding: 12px 16px;
-  border: none;
-  background: none;
-  text-align: left;
-  font-size: 14px;
-  color: #1f2937;
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 100%;
+  font-size: 20px;
   cursor: pointer;
+  transition: transform 0.2s;
+  border: none;
+  background: transparent;
 }
 
-.context-menu button:hover {
-  background: rgba(0, 0, 0, 0.05);
+.action-btn:active {
+  transform: scale(0.9);
 }
 
-.context-menu button#deleteHistoryBtn {
-  color: #ef4444;
+.edit-action {
+  background: #3b82f6;
 }
+
+.delete-action {
+  background: #ef4444;
+}
+
+
 
 /* Custom Check for Standalone */
 @media (display-mode: standalone) {
