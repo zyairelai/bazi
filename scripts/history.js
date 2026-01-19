@@ -204,6 +204,46 @@
         }
     }
 
+    // --- Modal Animations & State ---
+    function showHistory() {
+        renderHistory();
+        historyModal.style.display = 'block';
+        const content = historyModal.querySelector('.modal-content');
+        content.classList.remove('slide-down');
+        content.classList.add('slide-up');
+
+        // Add to history so back button can close it
+        if (window.history.state !== 'history-open') {
+            window.history.pushState('history-open', '');
+        }
+    }
+
+    function hideHistory(isFromPopState = false) {
+        const content = historyModal.querySelector('.modal-content');
+        content.classList.remove('slide-up');
+        content.classList.add('slide-down');
+
+        const onAnimationEnd = () => {
+            content.removeEventListener('animationend', onAnimationEnd);
+            if (content.classList.contains('slide-down')) {
+                historyModal.style.display = 'none';
+                content.classList.remove('slide-down');
+            }
+        };
+        content.addEventListener('animationend', onAnimationEnd);
+
+        // If closed via button/overlay, we need to pop the state
+        if (!isFromPopState && window.history.state === 'history-open') {
+            window.history.back();
+        }
+    }
+
+    window.addEventListener('popstate', (event) => {
+        if (historyModal.style.display === 'block') {
+            hideHistory(true);
+        }
+    });
+
     function jumpToEntry(entry) {
         // Always reset DaYun selection to "current" when jumping from history
         if (typeof window.resetSelectedDayun === 'function') {
@@ -224,7 +264,7 @@
         if (typeof window.updateDate === 'function') window.updateDate();
         if (typeof window.updateBaziTable === 'function') window.updateBaziTable();
 
-        historyModal.style.display = 'none';
+        hideHistory();
     }
 
     function editEntry(id) {
@@ -249,17 +289,12 @@
 
     // --- Event Listeners ---
     saveBtn.onclick = saveCurrentState;
-    historyBtn.onclick = () => {
-        renderHistory();
-        historyModal.style.display = 'block';
-    };
-    closeHistoryBtn.onclick = () => {
-        historyModal.style.display = 'none';
-    };
+    historyBtn.onclick = showHistory;
+    closeHistoryBtn.onclick = () => hideHistory();
 
     window.onclick = (e) => {
         if (e.target === historyModal) {
-            historyModal.style.display = 'none';
+            hideHistory();
         }
     };
 
