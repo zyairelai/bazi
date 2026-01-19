@@ -200,23 +200,7 @@
     }
 
     function jumpToEntry(entry) {
-        const currentYear = document.getElementById('yearSelect').value;
-        const currentMonth = document.getElementById('monthSelect').value;
-        const currentDate = document.getElementById('dateSelect').value;
-        const currentHour = document.getElementById('hourSelect').value;
-        const currentGender = document.querySelector('input[name="gender"]:checked').value;
-        const currentCalendar = document.querySelector('input[name="calendar"]:checked').value;
-
-        if (currentYear === entry.year &&
-            currentMonth === entry.month &&
-            currentDate === entry.date &&
-            currentHour === entry.hour &&
-            currentGender === entry.gender &&
-            currentCalendar === entry.calendar) {
-            historyModal.style.display = 'none';
-            return;
-        }
-
+        // Always reset DaYun selection to "current" when jumping from history
         if (typeof window.resetSelectedDayun === 'function') {
             window.resetSelectedDayun();
         }
