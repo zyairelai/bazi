@@ -550,17 +550,18 @@ body {
   border-radius: 50px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 1000;
-  width: auto;
-  max-width: none;
+  width: calc(100% - 64px);
+  max-width: 380px;
 }
 
 /* Blue Pill Buttons */
 .pwa-btn {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 24px;
+  padding: 12px 0;
   font-size: 16px;
   font-weight: 600;
   border: none;
