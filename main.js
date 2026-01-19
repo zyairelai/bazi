@@ -1,4 +1,6 @@
 // Initialize calendar and clipboard when page loads
+let selectedDayunIndex = null; // State to track manually selected DaYun column
+
 document.addEventListener('DOMContentLoaded', function () {
   initCalendar();
   initClipboard();
@@ -13,13 +15,19 @@ document.addEventListener('DOMContentLoaded', function () {
   // Listen to all date-related changes
   [yearSelect, monthSelect, dateSelect, hourSelect].forEach(el => {
     if (el) {
-      el.addEventListener('change', updateBaziTable);
+      el.addEventListener('change', () => {
+        selectedDayunIndex = null; // Reset selection on date change
+        updateBaziTable();
+      });
     }
   });
 
   // Listen to gender changes
   genderRadios.forEach(radio => {
-    radio.addEventListener('change', updateBaziTable);
+    radio.addEventListener('change', () => {
+      selectedDayunIndex = null; // Reset selection on gender change
+      updateBaziTable();
+    });
   });
 
   // Initial update
@@ -170,6 +178,7 @@ function updateBaziTable() {
     let dayunHighlight = null;
     let baziHighlights = null;
     let combinedResult = null;
+    let activeIndex = -1;
 
     if (baziResult && baziResult.eightChar && baziResult.baziDetails && baziResult.baziDetails.day) {
       const dayGan = baziResult.baziDetails.day.gan; // 日干
@@ -177,10 +186,22 @@ function updateBaziTable() {
 
       // Identify Current DaYun Branch
       const currentYear = new Date().getFullYear();
+      activeIndex = -1;
+
       if (dayunResult.dayunList) {
-        const activeDayun = dayunResult.dayunList.find(d => currentYear >= d.startYear && currentYear <= d.endYear);
-        if (activeDayun && activeDayun.ganZhi) {
-          currentDaYunBranch = activeDayun.ganZhi.charAt(1);
+        if (selectedDayunIndex !== null && dayunResult.dayunList[selectedDayunIndex]) {
+          // Use manual selection
+          activeIndex = selectedDayunIndex;
+        } else {
+          // Use current year
+          activeIndex = dayunResult.dayunList.findIndex(d => currentYear >= d.startYear && currentYear <= d.endYear);
+        }
+
+        if (activeIndex !== -1) {
+          const activeDayun = dayunResult.dayunList[activeIndex];
+          if (activeDayun && activeDayun.ganZhi) {
+            currentDaYunBranch = activeDayun.ganZhi.charAt(1);
+          }
         }
       }
 
@@ -204,6 +225,12 @@ function updateBaziTable() {
       dayunHighlight = highlightResults.dayunHighlight;
 
       // Calculate Stem Highlights (Identical Stems >= 3)
+      let currentDaYunStem = null;
+      if (activeIndex !== -1 && combinedResult && combinedResult.dayunList && combinedResult.dayunList[activeIndex]) {
+        const gz = combinedResult.dayunList[activeIndex].ganZhi;
+        if (gz) currentDaYunStem = gz.charAt(0);
+      }
+
       const allStems = {
         year: baziResult.baziDetails.year ? baziResult.baziDetails.year.gan : null,
         month: baziResult.baziDetails.month ? baziResult.baziDetails.month.gan : null,
@@ -211,25 +238,64 @@ function updateBaziTable() {
         hour: baziResult.baziDetails.hour ? baziResult.baziDetails.hour.gan : null
       };
 
-      const stemHighlights = calculateStemHighlights(allStems);
+      const stemResults = calculateStemHighlights(allStems, currentDaYunStem);
+      const stemHighlights = stemResults.baziHighlights;
+      if (stemResults.dayunHighlight) {
+        dayunHighlight = stemResults.dayunHighlight;
+      }
 
-      // Calculate Identical Branch Highlights (Identical Branches >= 3, excluding DaYun)
-      const identicalBranchHighlights = calculateIdenticalBranchHighlights(allBranches);
+      // Calculate Identical Branch Highlights (Identical Branches >= 3, including DaYun)
+      const identicalBranchResults = calculateIdenticalBranchHighlights(allBranches, currentDaYunBranch);
+      const identicalBranchHighlights = identicalBranchResults.baziHighlights;
+      if (identicalBranchResults.dayunHighlight) {
+        dayunHighlight = identicalBranchResults.dayunHighlight;
+      }
 
-      // Merge identical branch highlights into baziHighlights
-      Object.keys(identicalBranchHighlights).forEach(pillar => {
-        if (identicalBranchHighlights[pillar]) {
-          baziHighlights[pillar] = identicalBranchHighlights[pillar];
+      // Merge highlights: Ensure baziHighlights is an object of arrays
+      const mergedBaziHighlights = { year: [], month: [], day: [], hour: [] };
+      const pillars = ['year', 'month', 'day', 'hour'];
+
+      pillars.forEach(p => {
+        const colors = new Set();
+        // Add from calculateBranchHighlights (which now returns arrays)
+        if (baziHighlights[p]) {
+          if (Array.isArray(baziHighlights[p])) {
+            baziHighlights[p].forEach(c => colors.add(c));
+          } else {
+            colors.add(baziHighlights[p]);
+          }
         }
+        // Add from identicalBranchHighlights
+        if (identicalBranchHighlights[p]) {
+          if (Array.isArray(identicalBranchHighlights[p])) {
+            identicalBranchHighlights[p].forEach(c => colors.add(c));
+          } else {
+            colors.add(identicalBranchHighlights[p]);
+          }
+        }
+        mergedBaziHighlights[p] = Array.from(colors);
       });
 
       // Populate Bazi Table with computed highlights
-      populateBaziTable(baziResult.baziDetails, baziHighlights, stemHighlights);
+      populateBaziTable(baziResult.baziDetails, mergedBaziHighlights, stemHighlights);
     }
 
     // Populate DaYun Table
     if (combinedResult) {
-      populateDayunTable(combinedResult, dayunHighlight);
+      // Pass activeIndex to populateDayunTable so it knows which one to highlight
+      // We need to re-derive activeIndex since it was local scope above.
+      // Refactor: move activeIndex up or recalculate. 
+      // Recalculating is cheap.
+      let activeIndex = -1;
+      if (combinedResult.dayunList) {
+        if (selectedDayunIndex !== null) {
+          activeIndex = selectedDayunIndex;
+        } else {
+          const currentYear = new Date().getFullYear();
+          activeIndex = combinedResult.dayunList.findIndex(d => currentYear >= d.startYear && currentYear <= d.endYear);
+        }
+      }
+      populateDayunTable(combinedResult, dayunHighlight, activeIndex);
     }
 
   } catch (error) {
@@ -247,7 +313,13 @@ function populateBaziTable(baziDetails, branchHighlights = {}, stemHighlights = 
         const ids = ['main-star', 'stem', 'branch', 'hidden', 'auxiliary'];
         ids.forEach(suffix => {
           const el = document.getElementById(`${pillar}-${suffix}`);
-          if (el) el.textContent = '-';
+          if (el) {
+            el.textContent = '-';
+            // Explicitly clear styles to prevent persistent highlights
+            el.style.background = "";
+            el.style.backgroundColor = "";
+            el.style.fontWeight = "";
+          }
         });
       }
       return;
@@ -313,13 +385,29 @@ function populateBaziTable(baziDetails, branchHighlights = {}, stemHighlights = 
         branchEl.innerHTML = `<span class="bazi-char">${zhi}</span>`;
       }
 
-      // Apply passed highlight
-      const highlightColor = branchHighlights && branchHighlights[pillar];
-      if (highlightColor) {
-        branchEl.style.backgroundColor = highlightColor;
+      // Apply passed highlight (supports multiple colors via gradient)
+      const highlightColors = branchHighlights && branchHighlights[pillar];
+      if (highlightColors && highlightColors.length > 0) {
+        if (highlightColors.length === 1) {
+          branchEl.style.background = highlightColors[0];
+        } else {
+          // Create gradient for multiple colors
+          // Example 2 colors: linear-gradient(to bottom, c1 50%, c2 50%)
+          // Example 3 colors: linear-gradient(to bottom, c1 33.33%, c2 33.33% 66.66%, c3 66.66%)
+          const step = 100 / highlightColors.length;
+          let gradientStops = [];
+
+          highlightColors.forEach((color, index) => {
+            const startPct = index * step;
+            const endPct = (index + 1) * step;
+            gradientStops.push(`${color} ${startPct}% ${endPct}%`);
+          });
+
+          branchEl.style.background = `linear-gradient(to bottom, ${gradientStops.join(', ')})`;
+        }
         branchEl.style.fontWeight = "bold";
       } else {
-        branchEl.style.backgroundColor = "";
+        branchEl.style.background = "";
         branchEl.style.fontWeight = "";
       }
     }
@@ -346,7 +434,7 @@ function populateBaziTable(baziDetails, branchHighlights = {}, stemHighlights = 
   });
 }
 
-function populateDayunTable(result, dayunHighlightColor) {
+function populateDayunTable(result, dayunHighlightColor, activeIndex = -1) {
   const qiyunEl = document.getElementById('dayun-start-luck');
   const jiaoyunEl = document.getElementById('dayun-transition-date');
 
@@ -418,10 +506,8 @@ function populateDayunTable(result, dayunHighlightColor) {
 
   // Highlight current DaYun column
   try {
-    const currentYear = new Date().getFullYear();
     for (let i = 0; i < maxColumns; i++) {
-      const dayun = i < dayunList.length ? dayunList[i] : null;
-      const isMainMatch = !!(dayun && currentYear >= dayun.startYear && currentYear <= dayun.endYear);
+      const isMainMatch = (i === activeIndex);
 
       const ids = [
         `dayun-${i}-shishen-top`,
@@ -434,6 +520,13 @@ function populateDayunTable(result, dayunHighlightColor) {
       ids.forEach((id, idx) => {
         const item = document.getElementById(id);
         if (item) {
+          // Add click listener to select this Dayun
+          item.onclick = function () {
+            selectedDayunIndex = i;
+            updateBaziTable();
+          };
+          item.style.cursor = "pointer";
+
           // Reset styles first
           item.style.backgroundColor = "";
           item.style.fontWeight = "";
@@ -482,7 +575,7 @@ function populateDayunTable(result, dayunHighlightColor) {
  * 
  * @param {Object} branchesMap - { year, month, day, hour }
  * @param {string|null} activeDayunBranch - The branch of the current active DaYun
- * @returns {Object} { baziHighlights: { pillar: color }, dayunHighlight: color|null }
+ * @returns {Object} { baziHighlights: { pillar: [color, ...] }, dayunHighlight: color|null }
  */
 function calculateBranchHighlights(branchesMap, activeDayunBranch) {
   const pillars = ['year', 'month', 'day', 'hour'];
@@ -491,7 +584,7 @@ function calculateBranchHighlights(branchesMap, activeDayunBranch) {
   const checkSet = new Set(branchesList);
   if (activeDayunBranch) checkSet.add(activeDayunBranch);
 
-  const baziHighlights = { year: null, month: null, day: null, hour: null };
+  const baziHighlights = { year: [], month: [], day: [], hour: [] };
   let dayunHighlight = null; // Will store color if dayun participates in combo
 
   const getPillarsForBranch = (b) => pillars.filter(p => branchesMap[p] === b);
@@ -528,9 +621,10 @@ function calculateBranchHighlights(branchesMap, activeDayunBranch) {
         requiredBranches.forEach(branch => {
           // Highlight matching pillars
           getPillarsForBranch(branch).forEach(pillar => {
-            // Logic: If daYun is interacting, we color all involved pillars. 
-            // Even if the Bazi already had the combo internally, we just re-color it (same color).
-            baziHighlights[pillar] = color;
+            // Logic: Append color
+            if (!baziHighlights[pillar].includes(color)) {
+              baziHighlights[pillar].push(color);
+            }
           });
         });
 
@@ -554,7 +648,9 @@ function calculateBranchHighlights(branchesMap, activeDayunBranch) {
 
       required.forEach(branch => {
         getPillarsForBranch(branch).forEach(pillar => {
-          baziHighlights[pillar] = color;
+          if (!baziHighlights[pillar].includes(color)) {
+            baziHighlights[pillar].push(color);
+          }
         });
       });
 
@@ -576,7 +672,10 @@ function calculateBranchHighlights(branchesMap, activeDayunBranch) {
 
       required.forEach(branch => {
         getPillarsForBranch(branch).forEach(pillar => {
-          baziHighlights[pillar] = branchColors[branch];
+          const color = branchColors[branch];
+          if (!baziHighlights[pillar].includes(color)) {
+            baziHighlights[pillar].push(color);
+          }
         });
       });
 
@@ -595,9 +694,10 @@ window.calculateBranchHighlights = calculateBranchHighlights;
  * Calculate highlights for Heavenly Stems (Identical Stems).
  * 
  * @param {Object} stemsMap - { year, month, day, hour }
- * @returns {Object} { year: color, month: color, ... }
+ * @param {string|null} activeDayunStem - The stem of the active DaYun
+ * @returns {Object} { baziHighlights: { year: color, ... }, dayunHighlight: color|null }
  */
-function calculateStemHighlights(stemsMap) {
+function calculateStemHighlights(stemsMap, activeDayunStem) {
   const pillars = ['year', 'month', 'day', 'hour'];
   const stemsList = Object.values(stemsMap).filter(g => g);
 
@@ -607,7 +707,13 @@ function calculateStemHighlights(stemsMap) {
     counts[gan] = (counts[gan] || 0) + 1;
   });
 
+  // Add DaYun stem to count
+  if (activeDayunStem) {
+    counts[activeDayunStem] = (counts[activeDayunStem] || 0) + 1;
+  }
+
   const stemHighlights = { year: null, month: null, day: null, hour: null };
+  let dayunHighlight = null;
 
   // Check for counts >= 3
   Object.keys(counts).forEach(gan => {
@@ -624,24 +730,30 @@ function calculateStemHighlights(stemsMap) {
               stemHighlights[pillar] = color;
             }
           });
+
+          // Highlight DaYun if matches
+          if (activeDayunStem === gan) {
+            dayunHighlight = color;
+          }
         }
       }
     }
   });
 
-  return stemHighlights;
+  return { baziHighlights: stemHighlights, dayunHighlight };
 }
 
 window.calculateStemHighlights = calculateStemHighlights;
 
 /**
  * Calculate highlights for Earthly Branches (Identical Branches >= 3).
- * Does not take DaYun into consideration.
+ * Takes DaYun into consideration.
  * 
  * @param {Object} branchesMap - { year, month, day, hour }
- * @returns {Object} { year: color, month: color, ... }
+ * @param {string|null} activeDayunBranch - The branch of the active DaYun
+ * @returns {Object} { baziHighlights: { year: [color], ... }, dayunHighlight: color|null }
  */
-function calculateIdenticalBranchHighlights(branchesMap) {
+function calculateIdenticalBranchHighlights(branchesMap, activeDayunBranch) {
   const pillars = ['year', 'month', 'day', 'hour'];
   const branchesList = Object.values(branchesMap).filter(b => b);
 
@@ -651,7 +763,13 @@ function calculateIdenticalBranchHighlights(branchesMap) {
     counts[zhi] = (counts[zhi] || 0) + 1;
   });
 
-  const branchHighlights = { year: null, month: null, day: null, hour: null };
+  // Add DaYun branch to count
+  if (activeDayunBranch) {
+    counts[activeDayunBranch] = (counts[activeDayunBranch] || 0) + 1;
+  }
+
+  const branchHighlights = { year: [], month: [], day: [], hour: [] };
+  let dayunHighlight = null;
 
   // Check for counts >= 3
   Object.keys(counts).forEach(zhi => {
@@ -665,16 +783,22 @@ function calculateIdenticalBranchHighlights(branchesMap) {
           // Highlight all pillars with this branch
           pillars.forEach(pillar => {
             if (branchesMap[pillar] === zhi) {
-              branchHighlights[pillar] = color;
+              if (!branchHighlights[pillar].includes(color)) {
+                branchHighlights[pillar].push(color);
+              }
             }
           });
+
+          // Highlight DaYun if matches
+          if (activeDayunBranch === zhi) {
+            dayunHighlight = color;
+          }
         }
       }
     }
   });
 
-  return branchHighlights;
+  return { baziHighlights: branchHighlights, dayunHighlight };
 }
 
 window.calculateIdenticalBranchHighlights = calculateIdenticalBranchHighlights;
-
