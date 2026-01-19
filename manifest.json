@@ -1,7 +1,7 @@
 {
-  "name": "八字命理",
-  "short_name": "八字",
-  "description": "专业八字命理排盘工具",
+  "name": "扑街八字",
+  "short_name": "扑街八字",
+  "description": "专业八字看你几时扑街",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
