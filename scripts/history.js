@@ -60,7 +60,6 @@
         const history = getHistory();
         history.unshift(entry);
         saveHistory(history);
-        alert("保存成功！");
     }
 
     function renderHistory() {
@@ -68,7 +67,7 @@
         historyList.innerHTML = '';
 
         if (history.length === 0) {
-            historyList.innerHTML = '<div style="text-align:center; padding: 20px; color: #9ca3af;">暂无记录</div>';
+            historyList.innerHTML = '<div style="text-align:center; padding: 20px; color: #9ca3af;">No records</div>';
             return;
         }
 
@@ -77,7 +76,7 @@
             item.className = 'history-item';
             item.innerHTML = `
                 <div class="history-item-name">${entry.name}</div>
-                <div class="history-item-date">${entry.year}-${entry.month}-${entry.date} ${entry.hour} (${entry.gender === 'male' ? '男' : '女'})</div>
+                <div class="history-item-date">${entry.year}-${entry.month}-${entry.date} ${entry.hour} (${entry.gender === 'male' ? 'Male' : 'Female'})</div>
             `;
 
             // Touch Events for Long Press
@@ -206,7 +205,7 @@
         const history = getHistory();
         const entry = history.find(h => h.id === currentContextMenuId);
         if (entry) {
-            const newName = prompt("重新命名:", entry.name);
+            const newName = prompt("Edit:", entry.name);
             if (newName) {
                 entry.name = newName;
                 saveHistory(history);
@@ -217,11 +216,9 @@
     };
 
     deleteHistoryBtn.onclick = () => {
-        if (confirm("确定要删除这条记录吗？")) {
-            const history = getHistory().filter(h => h.id !== currentContextMenuId);
-            saveHistory(history);
-            renderHistory();
-        }
+        const history = getHistory().filter(h => h.id !== currentContextMenuId);
+        saveHistory(history);
+        renderHistory();
         contextMenu.style.display = 'none';
     };
 
