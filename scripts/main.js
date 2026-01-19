@@ -43,6 +43,10 @@ document.addEventListener('DOMContentLoaded', function () {
   updateBaziTable();
 });
 
+window.resetSelectedDayun = function () {
+  selectedDayunIndex = null;
+};
+
 // Helper to get background color for an element
 function getElementBackgroundColor(element) {
   switch (element) {

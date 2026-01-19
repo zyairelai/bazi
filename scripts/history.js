@@ -107,6 +107,29 @@
     }
 
     function jumpToEntry(entry) {
+        // Current state check to avoid flashing if jumping to the same content
+        const currentYear = document.getElementById('yearSelect').value;
+        const currentMonth = document.getElementById('monthSelect').value;
+        const currentDate = document.getElementById('dateSelect').value;
+        const currentHour = document.getElementById('hourSelect').value;
+        const currentGender = document.querySelector('input[name="gender"]:checked').value;
+        const currentCalendar = document.querySelector('input[name="calendar"]:checked').value;
+
+        if (currentYear === entry.year &&
+            currentMonth === entry.month &&
+            currentDate === entry.date &&
+            currentHour === entry.hour &&
+            currentGender === entry.gender &&
+            currentCalendar === entry.calendar) {
+            historyModal.style.display = 'none';
+            return;
+        }
+
+        // Reset DaYun selection to "current" after a jump
+        if (typeof window.resetSelectedDayun === 'function') {
+            window.resetSelectedDayun();
+        }
+
         // Update Gender
         const genderRadio = document.querySelector(`input[name="gender"][value="${entry.gender}"]`);
         if (genderRadio) genderRadio.checked = true;
