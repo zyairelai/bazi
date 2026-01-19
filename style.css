@@ -598,11 +598,10 @@ body {
   left: 0;
   width: 100%;
   background: white;
-  border-radius: 24px 24px 0 0;
-  padding: 24px 0;
-  /* Horizontal padding removed to allow full-width swipe */
+  border-radius: 20px 20px 0 0;
+  padding: 20px 0;
   box-sizing: border-box;
-  max-height: 85vh;
+  max-height: 80vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -652,47 +651,41 @@ body {
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0px;
   overflow-x: hidden;
   overflow-y: auto;
   flex: 1;
-  padding: 0 24px 20px 24px;
-  /* Reduced bottom padding */
+  padding: 0 0px 20px 0px;
   -webkit-overflow-scrolling: touch;
 }
 
 .history-item-wrapper {
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
-  background: #f3f4f6;
+  background: white;
   flex-shrink: 0;
-  /* Prevent items from squashing */
 }
 
 .history-item {
   position: relative;
   z-index: 2;
-  padding: 20px;
+  padding: 15px 24px;
   background: white;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 16px;
+  border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
   box-sizing: border-box;
-  min-height: 80px;
-  /* Ensure a decent height */
+  min-height: 70px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
 .history-item:active {
-  background: #dbeafe;
-  /* More prominent blue flash (blue-100) */
-  border-color: #3b82f6;
+  background: #f8f8f8;
 }
 
 .history-item-name {

@@ -184,7 +184,7 @@
     }
 
     function handleTouchEnd(e, item, entry) {
-        item.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+        item.style.transition = 'transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
         const currentOffset = Math.abs(getXOffset(item));
 
         if (currentOffset > MAX_SWIPE / 2) {
