@@ -59,6 +59,7 @@
         const history = getHistory();
         history.unshift(entry);
         saveHistory(history);
+        alert("Saved successfully!");
 
         // Enforce "original current DaYun" view after saving
         if (typeof window.resetSelectedDayun === 'function') {

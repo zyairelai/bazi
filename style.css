@@ -595,16 +595,17 @@ body {
   position: absolute;
   bottom: 0;
   width: 100%;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px 20px 0 0;
-  padding: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-radius: 24px 24px 0 0;
+  padding: 24px;
   box-sizing: border-box;
-  max-height: 80vh;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
 }
 
 .slide-up {
@@ -649,11 +650,12 @@ body {
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   overflow-x: hidden;
   overflow-y: auto;
   flex: 1;
-  padding-bottom: 20px;
+  padding: 4px 4px 60px 4px;
+  margin: 0 -4px;
 }
 
 .history-item-wrapper {
