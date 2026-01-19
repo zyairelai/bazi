@@ -601,8 +601,9 @@ body {
   border-radius: 20px 20px 0 0;
   padding: 20px;
   box-sizing: border-box;
-  max-height: 70vh;
-  overflow-y: auto;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
 }
 
@@ -627,6 +628,7 @@ body {
   margin-bottom: 16px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -649,6 +651,9 @@ body {
   flex-direction: column;
   gap: 12px;
   overflow-x: hidden;
+  overflow-y: auto;
+  flex: 1;
+  padding-bottom: 20px;
 }
 
 .history-item-wrapper {

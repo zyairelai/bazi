@@ -7,9 +7,12 @@
     const historyList = document.getElementById('historyList');
 
     let touchStartX = 0;
+    let touchStartY = 0;
     let touchMoveX = 0;
+    let touchMoveY = 0;
     let currentSwipeItem = null;
     const MAX_SWIPE = 120; // Width of two buttons (60px each)
+    const TAP_THRESHOLD = 8; // Pixels of movement allowed for a tap
 
     // --- PWA Mode Check ---
     function checkStandalone() {
@@ -154,29 +157,27 @@
             closeAllSwipes();
         }
         touchStartX = e.touches[0].clientX;
-        touchMoveX = 0; // Reset accurately
+        touchStartY = e.touches[0].clientY;
+        touchMoveX = 0;
+        touchMoveY = 0;
         item.style.transition = 'none';
         currentSwipeItem = item;
     }
 
     function handleTouchMove(e, item) {
         const touchX = e.touches[0].clientX;
+        const touchY = e.touches[0].clientY;
         touchMoveX = touchX - touchStartX;
+        touchMoveY = touchY - touchStartY;
 
         // Only allow swiping left
         let offset = Math.min(0, Math.max(-MAX_SWIPE, touchMoveX));
 
-        // If already open, start from -MAX_SWIPE
-        const currentOffset = getXOffset(item);
-        if (touchStartX > window.innerWidth - 100 && currentOffset < -50) {
-            // Heuristic: if swipe starts from the right side and it's already open
-            // We could improve this state tracking
-        }
-
+        // Visual feedback
         item.style.transform = `translateX(${offset}px)`;
 
-        // Prevent page scroll if swiping horizontally
-        if (Math.abs(touchMoveX) > 10) {
+        // Prevent page scroll only if swiping horizontally more than vertically
+        if (Math.abs(touchMoveX) > 10 && Math.abs(touchMoveX) > Math.abs(touchMoveY)) {
             e.preventDefault();
         }
     }
@@ -190,9 +191,12 @@
         } else {
             item.style.transform = 'translateX(0px)';
 
-            // If it was a quick tap, trigger jump and PREVENT ghost click
-            if (Math.abs(touchMoveX) < 10) {
-                e.preventDefault(); // Stop click event from firing on elements underneath
+            // Calculate total distance moved
+            const moveDist = Math.sqrt(touchMoveX * touchMoveX + touchMoveY * touchMoveY);
+
+            // If it was a clean tap (minimal movement), trigger jump and PREVENT ghost click
+            if (moveDist < TAP_THRESHOLD) {
+                e.preventDefault();
                 jumpToEntry(entry);
             }
             currentSwipeItem = null;
@@ -236,6 +240,7 @@
     }
 
     function deleteEntry(id) {
+        if (!confirm("Are you sure you want to delete this entry?")) return;
         const history = getHistory().filter(h => h.id !== id);
         saveHistory(history);
         renderHistory();
