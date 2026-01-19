@@ -35,7 +35,7 @@
     }
 
     function saveCurrentState() {
-        const name = prompt("请输入保存名称:");
+        const name = prompt("Enter Name：");
         if (!name) return;
 
         const year = document.getElementById('yearSelect').value;

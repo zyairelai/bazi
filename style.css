@@ -536,40 +536,46 @@ body {
     padding: 0;
   }
 }
-/* PWA Actions Container */
+
+/* PWA Actions Container - Pill Shape White Container */
 #pwa-actions {
   position: fixed;
-  bottom: 20px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 12px;
-  width: calc(100% - 40px);
-  max-width: 400px;
+  gap: 16px;
+  padding: 8px 16px;
+  background: white;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 1000;
+  width: auto;
+  max-width: none;
 }
 
-/* Glassmorphism Buttons */
+/* Blue Pill Buttons */
 .pwa-btn {
-  flex: 1;
-  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
   font-size: 16px;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: #1f2937;
+  border: none;
+  border-radius: 40px;
+  background: #3b82f6;
+  color: white;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.2s;
   -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
 }
 
 .pwa-btn:active {
   transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.9);
+  background: #2563eb;
 }
 
 /* Modal Styling */
@@ -604,8 +610,13 @@ body {
 }
 
 @keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
 
 .modal-header {
@@ -673,7 +684,7 @@ body {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   min-width: 120px;
 }
@@ -698,13 +709,24 @@ body {
 }
 
 /* Custom Check for Standalone */
+@media (display-mode: standalone) {
+  body {
+    padding-bottom: 100px;
+    /* Add space for the floating buttons */
+  }
+}
+
+/* JavaScript will add 'is-standalone' class to body if needed */
+body.is-standalone {
+  padding-bottom: 100px;
+}
+
 @media (display-mode: browser) {
   .pwa-only {
     display: none !important;
   }
 }
 
-/* JavaScript will add 'is-standalone' class to body if needed */
 body:not(.is-standalone) .pwa-only {
   display: none !important;
 }
