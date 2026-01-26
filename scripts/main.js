@@ -332,6 +332,9 @@ function populateBaziTable(baziDetails, branchHighlights = {}, stemHighlights = 
             el.style.background = "";
             el.style.backgroundColor = "";
             el.style.fontWeight = "";
+            el.style.boxShadow = "";
+            el.classList.remove('day-master-frame');
+            el.style.removeProperty('--dm-frame-color');
           }
         });
       }
@@ -357,16 +360,24 @@ function populateBaziTable(baziDetails, branchHighlights = {}, stemHighlights = 
         stemEl.innerHTML = `<span class="bazi-char">${gan}</span>`;
       }
 
-      // Determine Stem Background and Font Weight
+      // Determine Stem Background, Font Weight, and Shadow (Frame)
       let stemBgColor = "";
       let stemFontWeight = "";
+      let stemBoxShadow = "";
 
       // 1. Base color (Day Master)
       if (pillar === 'day' && gan && window.getStemColor) {
         const stemInfo = window.getStemColor(gan);
         const element = stemInfo.element;
+        const vibrantColor = stemInfo.color; // The vibrant element color
         stemBgColor = getElementBackgroundColor(element) || "#FEF3C7";
         stemFontWeight = "bold";
+
+        // Day Master Special Frame - Darker Respective Color
+        if (typeof darkenColor === 'function' && vibrantColor) {
+          const frameColor = darkenColor(vibrantColor, 0.2); // Darken the vibrant color for a deep frame
+          stemBoxShadow = `inset 0 0 0 2px ${frameColor}`;
+        }
       }
 
       // 2. Identical Stem Highlight override
@@ -381,6 +392,15 @@ function populateBaziTable(baziDetails, branchHighlights = {}, stemHighlights = 
       // Apply final styles
       stemEl.style.backgroundColor = stemBgColor;
       stemEl.style.fontWeight = stemFontWeight;
+
+      if (stemBoxShadow) {
+        // We use the class-based approach if a frame is needed
+        const frameColor = stemBoxShadow.match(/#[0-9a-fA-F]{6}/)[0];
+        stemEl.style.setProperty('--dm-frame-color', frameColor);
+        stemEl.classList.add('day-master-frame');
+      } else {
+        stemEl.classList.remove('day-master-frame');
+      }
     }
 
     // Earthly Branch

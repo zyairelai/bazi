@@ -346,6 +346,12 @@ body {
   position: relative;
 }
 
+.day-master-frame {
+  outline: 2.5px solid var(--dm-frame-color);
+  outline-offset: -2.5px;
+  z-index: 1;
+}
+
 .bazi-cell .bazi-char {
   display: inline-block;
   text-align: center;
