@@ -76,12 +76,9 @@
         // Sort
         const sortBy = historySort.value;
         history.sort((a, b) => {
-            if (sortBy === 'newest') return b.id - a.id;
             if (sortBy === 'oldest') return a.id - b.id;
-            if (sortBy === 'yearOldest') return parseInt(a.year) - parseInt(b.year);
-            if (sortBy === 'yearYoungest') return parseInt(b.year) - parseInt(a.year);
+            if (sortBy === 'newest') return b.id - a.id;
             if (sortBy === 'nameAZ') return a.name.localeCompare(b.name, 'zh-Hans-CN');
-            if (sortBy === 'nameZA') return b.name.localeCompare(a.name, 'zh-Hans-CN');
             return 0;
         });
 
