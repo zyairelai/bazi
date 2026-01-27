@@ -19,6 +19,7 @@ body {
   background: #e5e9ef;
   border-bottom: 1px solid var(--border-color);
   flex-wrap: wrap;
+  position: relative;
 }
 
 @media (max-width: 768px) {
@@ -777,5 +778,67 @@ body.is-standalone {
 }
 
 body:not(.is-standalone) .pwa-only {
+  display: none !important;
+}
+
+/* Desktop History/Save Actions */
+.desktop-actions {
+  display: flex;
+  gap: 10px;
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.desktop-btn {
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid #c5cbd6;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+  color: #1f2937;
+}
+
+.desktop-btn:hover {
+  background: #f0f2f6;
+  border-color: #3b82f6;
+}
+
+.desktop-btn:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 1024px) {
+  .desktop-actions {
+    position: static;
+    transform: none;
+    order: -1;
+    width: 100%;
+    margin-bottom: 12px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .desktop-actions {
+    display: none !important;
+  }
+}
+
+@media (display-mode: standalone) {
+  .desktop-actions {
+    display: none !important;
+  }
+}
+
+body.is-standalone .desktop-actions {
   display: none !important;
 }

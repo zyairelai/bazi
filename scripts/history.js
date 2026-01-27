@@ -2,6 +2,8 @@
 (function () {
     const saveBtn = document.getElementById('saveBtn');
     const historyBtn = document.getElementById('historyBtn');
+    const desktopSaveBtn = document.getElementById('desktopSaveBtn');
+    const desktopHistoryBtn = document.getElementById('desktopHistoryBtn');
     const historyModal = document.getElementById('historyModal');
     const closeHistoryBtn = document.getElementById('closeHistoryBtn');
     const historyList = document.getElementById('historyList');
@@ -290,6 +292,10 @@
     // --- Event Listeners ---
     saveBtn.onclick = saveCurrentState;
     historyBtn.onclick = showHistory;
+
+    if (desktopSaveBtn) desktopSaveBtn.onclick = saveCurrentState;
+    if (desktopHistoryBtn) desktopHistoryBtn.onclick = showHistory;
+
     closeHistoryBtn.onclick = () => hideHistory();
 
     window.onclick = (e) => {
