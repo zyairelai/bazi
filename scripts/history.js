@@ -2,11 +2,11 @@
 (function () {
     const saveBtn = document.getElementById('saveBtn');
     const historyBtn = document.getElementById('historyBtn');
-    const desktopSaveBtn = document.getElementById('desktopSaveBtn');
-    const desktopHistoryBtn = document.getElementById('desktopHistoryBtn');
     const historyModal = document.getElementById('historyModal');
     const closeHistoryBtn = document.getElementById('closeHistoryBtn');
     const historyList = document.getElementById('historyList');
+    const genderFilter = document.getElementById('genderFilter');
+    const historySort = document.getElementById('historySort');
 
     let touchStartX = 0;
     let touchStartY = 0;
@@ -16,14 +16,6 @@
     const MAX_SWIPE = 120; // Width of two buttons (60px each)
     const TAP_THRESHOLD = 8; // Pixels of movement allowed for a tap
 
-    // --- PWA Mode Check ---
-    function checkStandalone() {
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-        if (isStandalone) {
-            document.body.classList.add('is-standalone');
-        }
-    }
-    checkStandalone();
 
     // --- History Logic ---
     function getHistory() {
@@ -73,7 +65,26 @@
     }
 
     function renderHistory() {
-        const history = getHistory();
+        let history = getHistory();
+
+        // Filter by gender
+        const gender = genderFilter.value;
+        if (gender !== 'all') {
+            history = history.filter(entry => entry.gender === gender);
+        }
+
+        // Sort
+        const sortBy = historySort.value;
+        history.sort((a, b) => {
+            if (sortBy === 'newest') return b.id - a.id;
+            if (sortBy === 'oldest') return a.id - b.id;
+            if (sortBy === 'yearOldest') return parseInt(a.year) - parseInt(b.year);
+            if (sortBy === 'yearYoungest') return parseInt(b.year) - parseInt(a.year);
+            if (sortBy === 'nameAZ') return a.name.localeCompare(b.name, 'zh-Hans-CN');
+            if (sortBy === 'nameZA') return b.name.localeCompare(a.name, 'zh-Hans-CN');
+            return 0;
+        });
+
         historyList.innerHTML = '';
 
         if (history.length === 0) {
@@ -293,10 +304,10 @@
     saveBtn.onclick = saveCurrentState;
     historyBtn.onclick = showHistory;
 
-    if (desktopSaveBtn) desktopSaveBtn.onclick = saveCurrentState;
-    if (desktopHistoryBtn) desktopHistoryBtn.onclick = showHistory;
-
     closeHistoryBtn.onclick = () => hideHistory();
+
+    genderFilter.onchange = renderHistory;
+    historySort.onchange = renderHistory;
 
     window.onclick = (e) => {
         if (e.target === historyModal) {

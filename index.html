@@ -52,10 +52,6 @@
         </div>
       </div>
     </div>
-    <div class="desktop-actions">
-      <button id="desktopHistoryBtn" class="desktop-btn">📜 History</button>
-      <button id="desktopSaveBtn" class="desktop-btn">💾 Save</button>
-    </div>
   </div>
 
   <div class="content-container">
@@ -182,9 +178,9 @@
   </div>
 
 
-  <div id="pwa-actions" class="pwa-only">
-    <button id="historyBtn" class="pwa-btn">📜 History</button>
-    <button id="saveBtn" class="pwa-btn">💾 Save</button>
+  <div id="bottom-actions">
+    <button id="historyBtn" class="bottom-btn">📜 History</button>
+    <button id="saveBtn" class="bottom-btn">💾 Save</button>
   </div>
 
   <div id="historyModal" class="modal">
@@ -192,6 +188,27 @@
       <div class="modal-header">
         <h3>Saved History</h3>
         <button id="closeHistoryBtn" class="close-btn">&times;</button>
+      </div>
+      <div class="history-controls">
+        <div class="filter-group">
+          <label>Gender:</label>
+          <select id="genderFilter" class="history-select">
+            <option value="all">All</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div class="sort-group">
+          <label>Sort:</label>
+          <select id="historySort" class="history-select">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="yearOldest">Year ↑</option>
+            <option value="yearYoungest">Year ↓</option>
+            <option value="nameAZ">Name A-Z</option>
+            <option value="nameZA">Name Z-A</option>
+          </select>
+        </div>
       </div>
       <div id="historyList" class="history-list">
         <!-- History items will be injected here -->
