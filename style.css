@@ -784,10 +784,11 @@ body:not(.is-standalone) .pwa-only {
 /* Desktop History/Save Actions */
 .desktop-actions {
   display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin: 0 auto 32px auto;
-  max-width: 1400px;
+  gap: 10px;
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .desktop-btn {
@@ -817,7 +818,12 @@ body:not(.is-standalone) .pwa-only {
 
 @media (max-width: 1024px) {
   .desktop-actions {
-    margin-bottom: 24px;
+    position: static;
+    transform: none;
+    order: -1;
+    width: 100%;
+    margin-bottom: 12px;
+    justify-content: center;
   }
 }
 
