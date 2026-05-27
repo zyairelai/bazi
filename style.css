@@ -165,9 +165,13 @@ body {
     /* Allow flex shrinking */
   }
 
-  .time-button-row #copyBtn {
+  .time-button-row button {
+    padding: 8px 8px; /* Slimmer buttons in mobile view */
+  }
+
+  .time-button-row #copyBtn,
+  .time-button-row #resetBtn {
     flex-shrink: 0;
-    white-space: nowrap;
   }
 }
 
@@ -855,8 +859,8 @@ body.is-standalone .desktop-actions {
 }
 
 .quick-date-input {
-  width: 90px;
-  padding: 8px 14px;
+  width: 110px;
+  padding: 8px 10px;
   font-size: 16px; /* matching placeholder size better, but visually aligned */
   border-radius: 8px;
   border: 1px solid #c5cbd6;
@@ -868,6 +872,7 @@ body.is-standalone .desktop-actions {
   height: 41px; /* explicitly matching the button height */
   -webkit-appearance: none;
   appearance: none;
+  flex-shrink: 0; /* Prevent squishing on smaller desktop screens */
 }
 
 .quick-date-input:focus {
@@ -883,7 +888,9 @@ body.is-standalone .desktop-actions {
 
 @media (max-width: 768px) {
   .quick-date-input {
-    flex: 1;
+    flex: 1 1 60px;
     min-width: 0;
+    padding: 8px 2px;
+    font-size: 14px;
   }
 }
