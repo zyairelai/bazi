@@ -124,20 +124,29 @@ body {
   /* First row: gender and calendar radio containers side by side */
   .radio-containers-row {
     display: flex;
-    gap: 8px;
+    gap: 4px;
     width: 100%;
   }
 
   .gender-radio-container,
   .calendar-radio-container {
-    flex: 1;
+    flex: 0 1 auto;
     justify-content: center;
-    padding: 8px;
+    padding: 6px 4px;
+    gap: 2px;
     box-sizing: border-box;
   }
 
   .gender-radio-label {
     flex-shrink: 0;
+    gap: 2px;
+    font-size: 14px;
+  }
+
+  .gender-radio-label input[type="radio"] {
+    width: 14px;
+    height: 14px;
+    margin: 0;
   }
 
   /* Second row: year, month, date */
@@ -166,7 +175,7 @@ body {
   }
 
   .time-button-row button {
-    padding: 8px 8px; /* Slimmer buttons in mobile view */
+    padding: 8px 14px; /* Wider buttons in mobile view */
   }
 
   .time-button-row #copyBtn,
@@ -888,9 +897,9 @@ body.is-standalone .desktop-actions {
 
 @media (max-width: 768px) {
   .quick-date-input {
-    flex: 1 1 60px;
-    min-width: 0;
-    padding: 8px 2px;
-    font-size: 14px;
+    flex: 1;
+    min-width: 75px;
+    padding: 8px 4px;
+    font-size: 15px;
   }
 }
