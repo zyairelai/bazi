@@ -853,3 +853,37 @@ body {
 body.is-standalone .desktop-actions {
   display: none !important;
 }
+
+.quick-date-input {
+  width: 90px;
+  padding: 8px 14px;
+  font-size: 16px; /* matching placeholder size better, but visually aligned */
+  border-radius: 8px;
+  border: 1px solid #c5cbd6;
+  background: #fff;
+  text-align: center;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  color: #1f2937;
+  height: 41px; /* explicitly matching the button height */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.quick-date-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.quick-date-input::placeholder {
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+@media (max-width: 768px) {
+  .quick-date-input {
+    flex: 1;
+    min-width: 0;
+  }
+}

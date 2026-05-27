@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initCalendar();
   initClipboard();
   initResetButton();
+  initQuickDateInput();
   // Add event listener for date changes to update Bazi table
   const yearSelect = document.getElementById('yearSelect');
   const monthSelect = document.getElementById('monthSelect');
@@ -77,6 +78,57 @@ function darkenColor(hex, amount = 0.2) {
   b = Math.max(0, Math.min(255, Math.round(b * (1 - amount))));
   const out = (r << 16) | (g << 8) | b;
   return '#' + out.toString(16).padStart(6, '0');
+}
+
+function initQuickDateInput() {
+  const quickDateInput = document.getElementById('quickDateInput');
+  if (!quickDateInput) return;
+
+  quickDateInput.addEventListener('input', function(e) {
+    let val = this.value;
+    val = val.replace(/\D/g, ''); // only accept digits
+    this.value = val;
+
+    if (val.length === 6) {
+      const yy = parseInt(val.substring(0, 2), 10);
+      const mm = parseInt(val.substring(2, 4), 10);
+      const dd = parseInt(val.substring(4, 6), 10);
+
+      let year;
+      if (yy >= 35 && yy <= 99) {
+        year = 1900 + yy;
+      } else if (yy >= 0 && yy <= 34) {
+        year = 2000 + yy;
+      }
+
+      const yearSelect = document.getElementById('yearSelect');
+      const monthSelect = document.getElementById('monthSelect');
+      const dateSelect = document.getElementById('dateSelect');
+
+      if (yearSelect && monthSelect && dateSelect) {
+        yearSelect.value = year;
+        yearSelect.dispatchEvent(new Event('change'));
+
+        monthSelect.value = String(mm);
+        monthSelect.dispatchEvent(new Event('change'));
+
+        setTimeout(() => {
+          if (typeof updateDaysDropdown === 'function') {
+            updateDaysDropdown();
+          }
+          const dayOptions = Array.from(dateSelect.options);
+          if (dayOptions.some(opt => parseInt(opt.value, 10) === dd)) {
+            dateSelect.value = String(dd);
+          } else if (dayOptions.length > 0) {
+            dateSelect.value = dayOptions[dayOptions.length - 1].value;
+          }
+          dateSelect.dispatchEvent(new Event('change'));
+          quickDateInput.value = '';
+          quickDateInput.blur();
+        }, 50);
+      }
+    }
+  });
 }
 
 function initResetButton() {

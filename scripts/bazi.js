@@ -4,7 +4,7 @@ window.calculateShiShen = function(dayGan, targetGan) {
   if (!dayGan || !targetGan || !window.STEM_INFO || !window.SHI_SHEN_MAP) {
     return '';
   }
-  
+
   const dayInfo = window.STEM_INFO[dayGan];
   const targetInfo = window.STEM_INFO[targetGan];
   
