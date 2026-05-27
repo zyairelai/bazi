@@ -7,46 +7,46 @@ window.calculateShiShen = function(dayGan, targetGan) {
 
   const dayInfo = window.STEM_INFO[dayGan];
   const targetInfo = window.STEM_INFO[targetGan];
-  
+
   if (!dayInfo || !targetInfo) {
     return '';
   }
-  
+
   const dayElement = dayInfo.element;
   const targetElement = targetInfo.element;
   const dayPolarity = dayInfo.polarity;
   const targetPolarity = targetInfo.polarity;
   const samePolarity = dayPolarity === targetPolarity;
-  
+
   // Same element
   if (dayElement === targetElement) {
     return samePolarity ? window.SHI_SHEN_MAP.SAME_ELEMENT.same : window.SHI_SHEN_MAP.SAME_ELEMENT.different;
   }
-  
+
   // Check if target generates day master
   const generatesMe = window.ELEMENT_RELATIONSHIPS.generating[targetElement] === dayElement;
   if (generatesMe) {
     return samePolarity ? window.SHI_SHEN_MAP.GENERATES_ME.same : window.SHI_SHEN_MAP.GENERATES_ME.different;
   }
-  
+
   // Check if day master generates target
   const iGenerate = window.ELEMENT_RELATIONSHIPS.generating[dayElement] === targetElement;
   if (iGenerate) {
     return samePolarity ? window.SHI_SHEN_MAP.I_GENERATE.same : window.SHI_SHEN_MAP.I_GENERATE.different;
   }
-  
+
   // Check if target overcomes day master
   const overcomesMe = window.ELEMENT_RELATIONSHIPS.overcoming[targetElement] === dayElement;
   if (overcomesMe) {
     return samePolarity ? window.SHI_SHEN_MAP.OVERCOMES_ME.same : window.SHI_SHEN_MAP.OVERCOMES_ME.different;
   }
-  
+
   // Check if day master overcomes target
   const iOvercome = window.ELEMENT_RELATIONSHIPS.overcoming[dayElement] === targetElement;
   if (iOvercome) {
     return samePolarity ? window.SHI_SHEN_MAP.I_OVERCOME.same : window.SHI_SHEN_MAP.I_OVERCOME.different;
   }
-  
+
   return '';
 };
 
@@ -65,16 +65,16 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
     let lunar;
     // 检查 hour 是否有效 (0-23)
     const hasHour = (hour !== null && hour !== undefined && hour !== "");
-    
+
     let solarForDay, solarForHour;
     let hourGz = '';
-    
+
     if (calendarType === 'lunar') {
       // 阴历输入：直接使用农历日期
       const yearInt = parseInt(year);
       const monthInt = parseInt(month);
       const dayInt = parseInt(day);
-      
+
       // 检查是否是闰月（如果月份大于12，则月份-12是闰月月份）
       let isLeapMonth = false;
       let actualMonth = monthInt;
@@ -82,7 +82,7 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
         isLeapMonth = true;
         actualMonth = monthInt - 12;
       }
-      
+
       // 从农历创建Lunar对象
       // lunar-javascript API: Lunar.fromYmd(year, month, day, isLeapMonth)
       try {
@@ -174,21 +174,21 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
       lunar = solarForDay.getLunar();
     }
     const eightChar = lunar.getEightChar();
-    
+
     // 获取小时干支（对于晚子时，使用下一天的早子时的小时干支）
     const hourLunar = solarForHour.getLunar();
     const hourEightChar = hourLunar.getEightChar();
     hourGz = hourEightChar.getTime();
-    
+
     let result = '';
-    
+
     // 3. 获取当前选定时间的干支
     const yearGz = eightChar.getYear();
     const monthGz = eightChar.getMonth();
     const dayGz = eightChar.getDay();
-    
+
     result += `${year} ${yearGz}年 ${monthGz}月 ${dayGz}日`;
-    
+
     if (hasHour) {
       result += ` ${hourGz}时\n`;
     } else {
@@ -211,7 +211,7 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
         } else if (pillar === 'hour') {
           zhiChar = hourGz && hourGz.length >= 2 ? hourGz.charAt(1) : '';
         }
-        
+
         if (zhiChar && window.HIDDEN_GANS && window.HIDDEN_GANS[zhiChar]) {
           return window.HIDDEN_GANS[zhiChar].join('');
         }
@@ -223,7 +223,7 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
 
     // Get day master (日干) for 十神 calculations
     const dayGan = dayGz && dayGz.length >= 1 ? dayGz.charAt(0) : '';
-    
+
     // Extract detailed Bazi information for table display
     const baziDetails = {
       year: (() => {
@@ -235,7 +235,7 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
         const shishen = calculateShiShen(dayGan, gan);
         // 副星: 十神 following the 藏干 (relative to day master)
         const fuxing = hiddenArray.map(h => calculateShiShen(dayGan, h)).filter(h => h);
-        
+
         return {
           ganzhi: yearGz,
           gan: gan,
@@ -252,7 +252,7 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
         const hiddenArray = hidden ? hidden.split('') : [];
         const shishen = calculateShiShen(dayGan, gan);
         const fuxing = hiddenArray.map(h => calculateShiShen(dayGan, h)).filter(h => h);
-        
+
         return {
           ganzhi: monthGz,
           gan: gan,
@@ -267,7 +267,7 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
         const zhi = dayGz && dayGz.length >= 2 ? dayGz.charAt(1) : '';
         const hidden = getHiddenGan(lunar, 'day');
         const hiddenArray = hidden ? hidden.split('') : [];
-        
+
         return {
           ganzhi: dayGz,
           gan: gan,
@@ -284,7 +284,7 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
         const hiddenArray = hidden ? hidden.split('') : [];
         const shishen = calculateShiShen(dayGan, gan);
         const fuxing = hiddenArray.map(h => calculateShiShen(dayGan, h)).filter(h => h);
-        
+
         return {
           ganzhi: hourGz,
           gan: gan,

@@ -13,30 +13,30 @@ function getCurrentBazi() {
   const month = document.getElementById('monthSelect').value;
   const day = document.getElementById('dateSelect').value;
   let hour = document.getElementById('hourSelect').value;
-  
+
   // If hour is -1 (不确定/Unknown), pass null/empty to skip hour in calculation
   if (hour === '-1' || hour === '') {
     hour = null;
   }
-  
+
   const genderRadio = document.querySelector('input[name="gender"]:checked');
   const gender = genderRadio ? genderRadio.value : 'male';
-  
+
   const calendarRadio = document.querySelector('input[name="calendar"]:checked');
   const calendarType = calendarRadio ? calendarRadio.value : 'solar';
-  
+
   // Get bazi calculation result
   const baziResult = calculateBazi(year, month, day, hour, gender, calendarType);
-  
+
   // Get dayun calculation result
   let dayunResult = { dayunList: [] };
   if (baziResult && baziResult.eightChar) {
     dayunResult = calculateDayun(baziResult.eightChar, gender, baziResult.birthYear);
   }
-  
+
   // Format output: header + dayun list
   let result = baziResult.header || '';
-  
+
   // Add DaYun periods - only show periods that overlap with 2024-2040
   if (dayunResult && dayunResult.dayunList) {
     for (let i = 0; i < dayunResult.dayunList.length; i++) {
@@ -44,14 +44,14 @@ function getCurrentBazi() {
       const sYear = daYun.startYear;
       const eYear = daYun.endYear;
       const ganZhi = daYun.ganZhi;
-      
+
       // Filter: only show DaYun that overlaps with 2024-2040
       if (ganZhi && eYear >= 2024 && sYear <= 2040) {
         result += `${sYear}-${eYear} ${ganZhi}大运\n`;
       }
     }
   }
-  
+
   return result;
 }
 
@@ -64,23 +64,23 @@ function initClipboard() {
     console.error('Copy button not found');
     return;
   }
-  
+
   let timer = null;
   const originalIcon = copyBtn.textContent;
-  
+
   copyBtn.onclick = function() {
     const baziResult = getCurrentBazi();
-    
+
     // Clear any existing timer to prevent stuck state
     if (timer) {
       clearTimeout(timer);
       timer = null;
     }
-    
+
     // Execute copy
     navigator.clipboard.writeText(baziResult).then(() => {
       this.textContent = '✅';
-      
+
       timer = setTimeout(() => {
         this.textContent = originalIcon;
         timer = null;

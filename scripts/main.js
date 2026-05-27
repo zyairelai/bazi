@@ -349,7 +349,7 @@ function updateBaziTable() {
     if (combinedResult) {
       // Pass activeIndex to populateDayunTable so it knows which one to highlight
       // We need to re-derive activeIndex since it was local scope above.
-      // Refactor: move activeIndex up or recalculate. 
+      // Refactor: move activeIndex up or recalculate.
       // Recalculating is cheap.
       let activeIndex = -1;
       if (combinedResult.dayunList) {
@@ -657,7 +657,7 @@ function populateDayunTable(result, dayunHighlightColor, activeIndex = -1) {
 
 /**
  * Calculate highlights for Earthly Branches.
- * 
+ *
  * @param {Object} branchesMap - { year, month, day, hour }
  * @param {string|null} activeDayunBranch - The branch of the current active DaYun
  * @returns {Object} { baziHighlights: { pillar: [color, ...] }, dayunHighlight: color|null }
@@ -777,7 +777,7 @@ window.calculateBranchHighlights = calculateBranchHighlights;
 
 /**
  * Calculate highlights for Heavenly Stems (Identical Stems).
- * 
+ *
  * @param {Object} stemsMap - { year, month, day, hour }
  * @param {string|null} activeDayunStem - The stem of the active DaYun
  * @returns {Object} { baziHighlights: { year: color, ... }, dayunHighlight: color|null }
@@ -833,7 +833,7 @@ window.calculateStemHighlights = calculateStemHighlights;
 /**
  * Calculate highlights for Earthly Branches (Identical Branches >= 3).
  * Takes DaYun into consideration.
- * 
+ *
  * @param {Object} branchesMap - { year, month, day, hour }
  * @param {string|null} activeDayunBranch - The branch of the active DaYun
  * @returns {Object} { baziHighlights: { year: [color], ... }, dayunHighlight: color|null }

@@ -4,7 +4,7 @@ function calculateDayun(eightChar, gender, birthYear, dayGan) {
     const isMale = (gender === 'male' || gender === 'm' || gender === '1');
     const yun = eightChar.getYun(isMale ? 1 : 0);
     const dayunList = yun.getDaYun();
-    
+
     // Calculate age 80 year (birth year + 80)
     const age80Year = birthYear + 80;
 
@@ -16,10 +16,10 @@ function calculateDayun(eightChar, gender, birthYear, dayGan) {
       const startYears = yun.getStartYear ? yun.getStartYear() : 0;
       const startMonths = yun.getStartMonth ? yun.getStartMonth() : 0;
       const startDays = yun.getStartDay ? yun.getStartDay() : 0;
-      
+
       // Format: 出生后1年9月25日
       qiyunInfo = `出生后${startYears}年${startMonths}月${startDays}日`;
-      
+
       // Get 交运 date (actual date when DaYun starts)
       const startSolar = yun.getStartSolar ? yun.getStartSolar() : null;
       if (startSolar) {
@@ -53,21 +53,21 @@ function calculateDayun(eightChar, gender, birthYear, dayGan) {
         // Calculate age range
         const startAge = sYear - birthYear;
         const endAge = Math.min(eYear - birthYear, 80);
-        
+
         // Extract 天干 and 地支 from GanZhi
         const gan = ganZhi && ganZhi.length >= 1 ? ganZhi.charAt(0) : '';
         const zhi = ganZhi && ganZhi.length >= 2 ? ganZhi.charAt(1) : '';
-        
+
         // Calculate 十神 for 天干 (2nd row)
         let shishenGan = '';
         if (dayGan && gan && window.calculateShiShen) {
           shishenGan = window.calculateShiShen(dayGan, gan);
         }
-        
+
         // Get 地支藏干 and calculate 十神 for each (4th row)
         const hiddenGans = zhi && window.HIDDEN_GANS ? (window.HIDDEN_GANS[zhi] || []) : [];
         const shishenHidden = hiddenGans.map(h => dayGan && window.calculateShiShen ? window.calculateShiShen(dayGan, h) : '').filter(h => h);
-        
+
         filteredDayun.push({
           startYear: sYear,
           endYear: eYear,

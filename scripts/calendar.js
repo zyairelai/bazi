@@ -53,32 +53,32 @@ const hourSelect = document.getElementById('hourSelect');
 
 function initCalendar() {
   populateDropdowns();
-  
+
   // Initialize previous values before renderUI
   previousMonth = selectedDate.getMonth();
   previousYear = selectedDate.getFullYear();
-  
+
   // Populate days dropdown initially
   updateDaysDropdown();
-  
+
   renderUI();
-  
+
   // Add event listeners
   yearSelect.addEventListener('change', updateDate);
   monthSelect.addEventListener('change', updateDate);
   dateSelect.addEventListener('change', updateDate);
   hourSelect.addEventListener('change', updateDate);
-  
+
   // Add event listeners for calendar type radio buttons
   const calendarRadios = document.querySelectorAll('input[name="calendar"]');
   calendarRadios.forEach(radio => {
     radio.addEventListener('change', function() {
       const calendarType = getCalendarType();
       const year = parseInt(yearSelect.value);
-      
+
       // Update months dropdown first
       updateMonthsDropdown();
-      
+
       // When switching to lunar, try to convert current solar date to lunar
       if (calendarType === 'lunar') {
         try {
@@ -88,14 +88,14 @@ function initCalendar() {
           const lunarMonth = lunar.getMonth();
           const lunarDay = lunar.getDay();
           const isLeap = lunar.isLeap();
-          
+
           // Update dropdowns with lunar values
           yearSelect.value = lunarYear;
           // Set month - if leap month, add 12
           monthSelect.value = isLeap ? 12 + lunarMonth : lunarMonth;
           updateDaysDropdown();
           dateSelect.value = lunarDay;
-          
+
           // Store lunar values
           currentLunarYear = lunarYear;
           currentLunarMonth = isLeap ? 12 + lunarMonth : lunarMonth;
@@ -128,7 +128,7 @@ function initCalendar() {
           updateDaysDropdown();
         }
       }
-      
+
       // Trigger update
       updateDate();
     });
@@ -146,17 +146,17 @@ function populateDropdowns() {
   monthSelect.innerHTML = '';
   dateSelect.innerHTML = '';
   hourSelect.innerHTML = '';
-  
+
   for (let year = 1940; year <= 2030; year++) {
     const option = document.createElement('option');
     option.value = year;
     option.textContent = year;
     yearSelect.appendChild(option);
   }
-  
+
   // Populate months based on calendar type
   updateMonthsDropdown();
-  
+
   // Populate Chinese time periods (时辰)
   SHICHEN.forEach((shichen, index) => {
     const option = document.createElement('option');
@@ -177,11 +177,11 @@ function populateDropdowns() {
 function updateMonthsDropdown() {
   const calendarType = getCalendarType();
   monthSelect.innerHTML = '';
-  
+
   if (calendarType === 'lunar') {
     // For lunar calendar, populate months including leap months
     const year = parseInt(yearSelect.value) || (selectedDate ? selectedDate.getFullYear() : new Date().getFullYear());
-    
+
     try {
       // Get lunar months for the selected year
       // Start with regular months 1-12
@@ -191,7 +191,7 @@ function updateMonthsDropdown() {
         option.textContent = month + '月';
         monthSelect.appendChild(option);
       }
-      
+
       // Check for leap month in this year
       // Try to detect by checking if we can create a leap month for each month
       let leapMonth = 0;
@@ -206,7 +206,7 @@ function updateMonthsDropdown() {
           // Continue checking
         }
       }
-      
+
       if (leapMonth > 0) {
         // Insert leap month after the regular month
         const leapOption = document.createElement('option');
@@ -244,12 +244,12 @@ function updateDaysDropdown() {
   const year = parseInt(yearSelect.value);
   const monthValue = parseInt(monthSelect.value);
   const calendarType = getCalendarType();
-  
+
   // Clear existing options
   dateSelect.innerHTML = '';
-  
+
   let lastDate;
-  
+
   if (calendarType === 'lunar') {
     // Lunar calendar: get days from Lunar object
     try {
@@ -260,7 +260,7 @@ function updateDaysDropdown() {
         isLeapMonth = true;
         actualMonth = monthValue - 12;
       }
-      
+
       // Get lunar month info - find maximum valid day by testing
       // Start with 30 and work backwards to find the last valid day
       lastDate = 30;
@@ -310,7 +310,7 @@ function updateDaysDropdown() {
     const month = monthValue - 1; // JavaScript months are 0-indexed
     lastDate = new Date(year, month + 1, 0).getDate();
   }
-  
+
   // Populate days (01-31 with leading zeros)
   for (let day = 1; day <= lastDate; day++) {
     const option = document.createElement('option');
@@ -332,13 +332,13 @@ function updateDate() {
   const monthValue = parseInt(monthSelect.value);
   const hourValue = hourSelect.value;
   const calendarType = getCalendarType();
-  
+
   // Check if month or year changed - need to update days dropdown
   const monthChanged = monthValue !== (previousMonth !== null ? previousMonth + 1 : null);
   const yearChanged = year !== previousYear;
-  
+
   let date = parseInt(dateSelect.value);
-  
+
   if (monthChanged || yearChanged) {
     if (calendarType === 'lunar') {
       updateMonthsDropdown(); // Update months in case leap month changed
@@ -351,7 +351,7 @@ function updateDate() {
     date = Math.min(date || 1, maxDays);
     dateSelect.value = date;
   }
-  
+
   // Handle unknown hour (-1 means skip hour)
   let hour = 0; // default hour
   if (hourValue !== '-1' && hourValue !== '') {
@@ -360,14 +360,14 @@ function updateDate() {
     // Keep current hour if unknown is selected
     hour = selectedDate ? selectedDate.getHours() : 0;
   }
-  
+
   // Update selectedDate based on calendar type
   if (calendarType === 'lunar') {
     // Store lunar values
     currentLunarYear = year;
     currentLunarMonth = monthValue;
     currentLunarDay = date;
-    
+
     // For lunar, we store the lunar values but convert to solar for selectedDate (for internal use only)
     try {
       let isLeapMonth = false;
@@ -415,13 +415,13 @@ function updateDate() {
     currentLunarMonth = null;
     currentLunarDay = null;
   }
-  
+
   // Update previous values
   previousMonth = calendarType === 'lunar' ? monthValue - 1 : monthValue - 1;
   previousYear = year;
-  
+
   renderUI();
-  
+
   // Update Bazi table if function exists
   if (typeof updateBaziTable === 'function') {
     updateBaziTable();
@@ -430,7 +430,7 @@ function updateDate() {
 
 function renderUI() {
   const calendarType = getCalendarType();
-  
+
   // For lunar calendar, don't update dropdowns from selectedDate (which is solar)
   // Instead, keep the lunar values that user selected
   if (calendarType === 'lunar') {
@@ -447,14 +447,14 @@ function renderUI() {
     // Don't update year/month/day dropdowns - they should reflect lunar values
     return;
   }
-  
+
   // For solar calendar, update from selectedDate as before
   const y = selectedDate.getFullYear();
   const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
   const d = String(selectedDate.getDate()).padStart(2, '0');
   const h = String(selectedDate.getHours()).padStart(2, '0');
   const min = String(selectedDate.getMinutes()).padStart(2, '0');
-  
+
   // Update dropdown values
   yearSelect.value = y;
   monthSelect.value = parseInt(m);
