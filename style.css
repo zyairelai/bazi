@@ -553,7 +553,14 @@ body {
     align-items: flex-start;
     gap: 6px;
     font-size: 13px;
-    padding: 0;
+    padding: 8px 0;
+  }
+
+  .dayun-header-line {
+    justify-content: flex-start;
+    text-align: left;
+    padding-left: 6px;
+    width: 100%;
   }
 }
 
