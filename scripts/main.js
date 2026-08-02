@@ -1,5 +1,10 @@
 // Initialize calendar and clipboard when page loads
 let selectedDayunIndex = null; // State to track manually selected DaYun column
+let currentDayunOffset = 0;
+let lastDayunResult = null;
+let lastDayunHighlightColor = null;
+let lastDayunActiveIndex = -1;
+let isProgrammaticOffset = false;
 
 document.addEventListener('DOMContentLoaded', function () {
   // Register Service Worker
@@ -23,6 +28,30 @@ document.addEventListener('DOMContentLoaded', function () {
   const genderRadios = document.querySelectorAll('input[name="gender"]');
 
   // Listen to all date-related changes
+  const prevBtn = document.getElementById('dayun-prev-btn');
+  const nextBtn = document.getElementById('dayun-next-btn');
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function() {
+      if (lastDayunResult && lastDayunResult.dayunList) {
+        if (currentDayunOffset > 0) {
+          currentDayunOffset--;
+          isProgrammaticOffset = true;
+          populateDayunTable(lastDayunResult, lastDayunHighlightColor, lastDayunActiveIndex);
+        }
+      }
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function() {
+      if (lastDayunResult && lastDayunResult.dayunList) {
+        if (currentDayunOffset < lastDayunResult.dayunList.length - 7) {
+          currentDayunOffset++;
+          isProgrammaticOffset = true;
+          populateDayunTable(lastDayunResult, lastDayunHighlightColor, lastDayunActiveIndex);
+        }
+      }
+    });
+  }
   [yearSelect, monthSelect, dateSelect, hourSelect].forEach(el => {
     if (el) {
       el.addEventListener('change', () => {
@@ -375,7 +404,7 @@ function populateBaziTable(baziDetails, branchHighlights = {}, stemHighlights = 
     const details = baziDetails[pillar];
     if (!details) {
       if (pillar === 'hour') {
-        const ids = ['main-star', 'stem', 'branch', 'hidden', 'auxiliary'];
+        const ids = ['main-star', 'stem', 'branch', 'auxiliary', 'shensha'];
         ids.forEach(suffix => {
           const el = document.getElementById(`${pillar}-${suffix}`);
           if (el) {
@@ -497,29 +526,117 @@ function populateBaziTable(baziDetails, branchHighlights = {}, stemHighlights = 
       }
     }
 
-    // Hidden Stems
-    const hiddenEl = document.getElementById(`${pillar}-hidden`);
-    if (hiddenEl) {
-      let hiddenText = '';
-      if (typeof details.hidden === 'string') hiddenText = details.hidden;
-      else if (Array.isArray(details.hidden)) hiddenText = details.hidden.join('');
-      else if (details.hidden) hiddenText = details.hidden.toString();
-      hiddenEl.textContent = hiddenText;
-    }
-
-    // Auxiliary Stars
+    // Combined Hidden Stems & Auxiliary Stars
     const auxiliaryEl = document.getElementById(`${pillar}-auxiliary`);
     if (auxiliaryEl) {
-      if (Array.isArray(details.fuxing) && details.fuxing.length > 0) {
-        auxiliaryEl.innerHTML = details.fuxing.join('<br>');
+      const hiddenArray = (typeof details.hidden === 'string') ? details.hidden.split('') : (Array.isArray(details.hidden) ? details.hidden : []);
+      if (hiddenArray.length > 0 && Array.isArray(details.fuxing)) {
+        const combined = hiddenArray.map((gan, index) => {
+          const fuxingName = details.fuxing[index] || '';
+          let color = '#1f2937';
+          if (window.getStemColor) {
+            const stemInfo = window.getStemColor(gan);
+            if (stemInfo && stemInfo.color) {
+              color = stemInfo.color;
+            }
+          }
+          return `<span style="color: ${color}; font-weight: 700; margin-right: 4px;">${gan}</span><span style="color: #4b5563;">${fuxingName}</span>`;
+        });
+        auxiliaryEl.innerHTML = combined.join('<br>');
       } else {
         auxiliaryEl.textContent = '';
+      }
+    }
+
+    // Shensha
+    const shenshaEl = document.getElementById(`${pillar}-shensha`);
+    if (shenshaEl) {
+      if (Array.isArray(details.shensha) && details.shensha.length > 0) {
+        const shenshaMapping = {
+          "天乙": { name: "天乙贵人", type: "auspicious" },
+          "太极": { name: "太极贵人", type: "auspicious" },
+          "天德": { name: "天德贵人", type: "auspicious" },
+          "月德": { name: "月德贵人", type: "auspicious" },
+          "德秀": { name: "德秀贵人", type: "auspicious" },
+          "天德合": { name: "天德合", type: "auspicious" },
+          "月德合": { name: "月德合", type: "auspicious" },
+          "福星": { name: "福星贵人", type: "auspicious" },
+          "文昌": { name: "文昌贵人", type: "auspicious" },
+          "学堂": { name: "学堂贵人", type: "auspicious" },
+          "词馆": { name: "词馆贵人", type: "auspicious" },
+          "国印": { name: "国印贵人", type: "auspicious" },
+          "金舆": { name: "金舆贵人", type: "auspicious" },
+          "天医": { name: "天医贵人", type: "auspicious" },
+          "天厨": { name: "天厨贵人", type: "auspicious" },
+          "三奇": { name: "三奇贵人", type: "auspicious" },
+          "禄神": { name: "禄神", type: "auspicious" },
+          "天赦": { name: "天赦", type: "auspicious" },
+          "红鸾": { name: "红鸾", type: "auspicious" },
+          "天喜": { name: "天喜", type: "auspicious" },
+          "将星": { name: "将星", type: "auspicious" },
+          "华盖": { name: "华盖", type: "neutral" },
+          "桃花": { name: "桃花", type: "neutral" },
+          "十灵": { name: "十灵日", type: "neutral" },
+          "魁罡": { name: "魁罡", type: "neutral" },
+          "金神": { name: "金神", type: "neutral" },
+          "五鬼": { name: "五鬼煞", type: "inauspicious" },
+          "流霞": { name: "流霞煞", type: "inauspicious" },
+          "红艳": { name: "红艳煞", type: "inauspicious" },
+          "童子": { name: "童子煞", type: "inauspicious" },
+          "孤鸾": { name: "孤鸾煞", type: "inauspicious" },
+          "劫煞": { name: "劫煞", type: "inauspicious" },
+          "灾煞": { name: "灾煞", type: "inauspicious" },
+          "羊刃": { name: "羊刃", type: "inauspicious" },
+          "飞刃": { name: "飞刃", type: "inauspicious" },
+          "血刃": { name: "血刃", type: "inauspicious" },
+          "元辰": { name: "元辰", type: "inauspicious" },
+          "空亡": { name: "空亡", type: "inauspicious" },
+          "孤辰": { name: "孤辰", type: "inauspicious" },
+          "寡宿": { name: "寡宿", type: "inauspicious" },
+          "亡神": { name: "亡神", type: "inauspicious" },
+          "十恶大败": { name: "十恶大败", type: "inauspicious" },
+          "阴差阳错": { name: "阴差阳错", type: "inauspicious" },
+          "四废": { name: "四废", type: "inauspicious" },
+          "丧门": { name: "丧门", type: "inauspicious" },
+          "吊客": { name: "吊客", type: "inauspicious" },
+          "披麻": { name: "披麻", type: "inauspicious" },
+          "天罗": { name: "天罗", type: "inauspicious" },
+          "地网": { name: "地网", type: "inauspicious" },
+          "八专": { name: "八专", type: "inauspicious" },
+          "九丑": { name: "九丑", type: "inauspicious" }
+        };
+
+        const formattedShensha = details.shensha.map(name => {
+          const info = shenshaMapping[name] || { name: name, type: "neutral" };
+          return `<span class="shensha-${info.type}">${info.name}</span>`;
+        });
+        shenshaEl.innerHTML = formattedShensha.join('<br>');
+      } else {
+        shenshaEl.textContent = '';
       }
     }
   });
 }
 
 function populateDayunTable(result, dayunHighlightColor, activeIndex = -1) {
+  if (!isProgrammaticOffset) {
+    lastDayunResult = result;
+    lastDayunHighlightColor = dayunHighlightColor;
+    lastDayunActiveIndex = activeIndex;
+    const dayunList = result.dayunList || [];
+    const maxColumns = 7;
+    if (activeIndex !== -1) {
+      currentDayunOffset = activeIndex - 3;
+    } else {
+      currentDayunOffset = 0;
+    }
+    if (currentDayunOffset > dayunList.length - maxColumns) {
+      currentDayunOffset = Math.max(0, dayunList.length - maxColumns);
+    }
+    if (currentDayunOffset < 0) currentDayunOffset = 0;
+  }
+  isProgrammaticOffset = false;
+
   const qiyunEl = document.getElementById('dayun-start-luck');
   const jiaoyunEl = document.getElementById('dayun-transition-date');
 
@@ -539,7 +656,8 @@ function populateDayunTable(result, dayunHighlightColor, activeIndex = -1) {
   ];
 
   for (let i = 0; i < maxColumns; i++) {
-    const dayun = i < dayunList.length ? dayunList[i] : null;
+    const dataIndex = i + currentDayunOffset;
+    const dayun = dataIndex < dayunList.length ? dayunList[dataIndex] : null;
 
     // 1. Shishen Top
     const shishenTopEl = document.getElementById(`dayun-${i}-shishen-top`);
@@ -592,7 +710,8 @@ function populateDayunTable(result, dayunHighlightColor, activeIndex = -1) {
   // Highlight current DaYun column
   try {
     for (let i = 0; i < maxColumns; i++) {
-      const isMainMatch = (i === activeIndex);
+      const dataIndex = i + currentDayunOffset;
+      const isMainMatch = (dataIndex === activeIndex);
 
       const ids = [
         `dayun-${i}-shishen-top`,
@@ -607,7 +726,7 @@ function populateDayunTable(result, dayunHighlightColor, activeIndex = -1) {
         if (item) {
           // Add click listener to select this Dayun
           item.onclick = function () {
-            selectedDayunIndex = i;
+            selectedDayunIndex = dataIndex;
             updateBaziTable();
           };
           item.style.cursor = "pointer";

@@ -903,3 +903,50 @@ body.is-standalone .desktop-actions {
     font-size: 15px;
   }
 }
+/* Shensha Styles */
+.shensha-auspicious {
+  color: #3b82f6; /* Blue for auspicious */
+}
+.shensha-inauspicious {
+  color: #ef4444; /* Red for inauspicious */
+}
+.shensha-neutral {
+  color: #6b7280; /* Light grey for neutral */
+}
+
+/* Dayun Navigation Buttons */
+.dayun-nav-btn {
+  position: absolute;
+  top: 66px;
+  bottom: 0;
+  height: auto;
+  width: 20px;
+  background: #e5e9ef;
+  color: #475569;
+  border: 1px solid #c5cbd6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  z-index: 10;
+  font-size: 10px;
+  transition: background-color 0.1s ease, transform 0.1s ease;
+}
+
+.dayun-nav-btn:hover {
+  background: #d0d6df;
+}
+
+.dayun-nav-btn:active {
+  background: #94a3b8; /* Darker blue-grey for active click state */
+  transform: scale(0.95);
+}
+
+.dayun-prev-btn {
+  left: 0;
+}
+
+.dayun-next-btn {
+  right: 0;
+}

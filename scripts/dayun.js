@@ -5,8 +5,8 @@ function calculateDayun(eightChar, gender, birthYear, dayGan) {
     const yun = eightChar.getYun(isMale ? 1 : 0);
     const dayunList = yun.getDaYun();
 
-    // Calculate age 80 year (birth year + 80)
-    const age80Year = birthYear + 80;
+    // Calculate age 120 year (birth year + 120)
+    const age120Year = birthYear + 120;
 
     // Get 起运 information (time after birth when DaYun starts)
     let qiyunInfo = '';
@@ -39,7 +39,7 @@ function calculateDayun(eightChar, gender, birthYear, dayGan) {
       console.warn('Error getting qiyun info:', e);
     }
 
-    // 过滤大运：显示从出生到80岁期间的DaYun，且必须有干支
+    // 过滤大运：显示从出生到120岁期间的DaYun，且必须有干支
     const filteredDayun = [];
     for (let i = 0; i < dayunList.length; i++) {
       const daYun = dayunList[i];
@@ -47,12 +47,12 @@ function calculateDayun(eightChar, gender, birthYear, dayGan) {
       const eYear = daYun.getEndYear();
       const ganZhi = daYun.getGanZhi();
 
-      // 逻辑：起止年份只要重叠了出生到80岁期间就显示，且必须有干支值
-      // If DaYun period overlaps with birth to age 80 (e.g., 79-88 overlaps with birth to 80)
-      if (eYear >= birthYear && sYear <= age80Year && ganZhi && ganZhi.trim() !== '') {
+      // 逻辑：起止年份只要重叠了出生到120岁期间就显示，且必须有干支值
+      // If DaYun period overlaps with birth to age 120
+      if (eYear >= birthYear && sYear <= age120Year && ganZhi && ganZhi.trim() !== '') {
         // Calculate age range
         const startAge = sYear - birthYear;
-        const endAge = Math.min(eYear - birthYear, 80);
+        const endAge = Math.min(eYear - birthYear, 120);
 
         // Extract 天干 and 地支 from GanZhi
         const gan = ganZhi && ganZhi.length >= 1 ? ganZhi.charAt(0) : '';

@@ -224,6 +224,15 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
     // Get day master (日干) for 十神 calculations
     const dayGan = dayGz && dayGz.length >= 1 ? dayGz.charAt(0) : '';
 
+    const isman = gender === 'male';
+    const niannayin = eightChar.getYearNaYin ? eightChar.getYearNaYin() : '';
+    const baziArray = [
+      yearGz.charAt(0) || '', yearGz.charAt(1) || '',
+      monthGz.charAt(0) || '', monthGz.charAt(1) || '',
+      dayGz.charAt(0) || '', dayGz.charAt(1) || '',
+      hasHour ? hourGz.charAt(0) : '', hasHour ? hourGz.charAt(1) : ''
+    ];
+
     // Extract detailed Bazi information for table display
     const baziDetails = {
       year: (() => {
@@ -242,7 +251,8 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
           zhi: zhi,
           hidden: hidden,
           shishen: shishen,
-          fuxing: fuxing
+          fuxing: fuxing,
+          shensha: typeof queryShenSha === 'function' ? queryShenSha(yearGz, baziArray, isman, 1, niannayin) : []
         };
       })(),
       month: (() => {
@@ -259,7 +269,8 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
           zhi: zhi,
           hidden: hidden,
           shishen: shishen,
-          fuxing: fuxing
+          fuxing: fuxing,
+          shensha: typeof queryShenSha === 'function' ? queryShenSha(monthGz, baziArray, isman, 2, niannayin) : []
         };
       })(),
       day: (() => {
@@ -274,7 +285,8 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
           zhi: zhi,
           hidden: hidden,
           shishen: '日元', // Day Master
-          fuxing: hiddenArray.map(h => calculateShiShen(dayGan, h)).filter(h => h)
+          fuxing: hiddenArray.map(h => calculateShiShen(dayGan, h)).filter(h => h),
+          shensha: typeof queryShenSha === 'function' ? queryShenSha(dayGz, baziArray, isman, 3, niannayin) : []
         };
       })(),
       hour: hasHour ? (() => {
@@ -291,7 +303,8 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
           zhi: zhi,
           hidden: hidden,
           shishen: shishen,
-          fuxing: fuxing
+          fuxing: fuxing,
+          shensha: typeof queryShenSha === 'function' ? queryShenSha(hourGz, baziArray, isman, 4, niannayin) : []
         };
       })() : null
     };

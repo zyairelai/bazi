@@ -3,7 +3,7 @@ const MONTH_NAMES = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8�
 
 // Chinese time periods (时辰) mapping
 const SHICHEN = [
-  { name: "不确定", hour: -1, range: "Not Sure", isUnknown: true },
+  { name: "Not Sure", hour: -1, range: "", isUnknown: true },
   { name: "早子时", hour: 0, range: "00:00-00:59" },
   { name: "丑时", hour: 1, range: "01:00-02:59" },
   { name: "寅时", hour: 3, range: "03:00-04:59" },
@@ -162,7 +162,7 @@ function populateDropdowns() {
     const option = document.createElement('option');
     option.value = shichen.hour;
     if (shichen.isUnknown) {
-      option.textContent = `${shichen.name} ${shichen.range}`;
+      option.textContent = shichen.name;
     } else {
       option.textContent = `${shichen.name} ${shichen.range}`;
     }
