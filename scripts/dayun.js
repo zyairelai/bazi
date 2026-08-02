@@ -82,6 +82,64 @@ function calculateDayun(eightChar, gender, birthYear, dayGan) {
       }
     }
 
+    // Extrapolate DaYuns if we have less than 11 columns
+    if (filteredDayun.length > 0 && filteredDayun.length < 11) {
+      const GAN = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+      const ZHI = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+      const JIAZI = [];
+      for (let i = 0; i < 60; i++) JIAZI.push(GAN[i % 10] + ZHI[i % 12]);
+      
+      while (filteredDayun.length < 11) {
+        const last = filteredDayun[filteredDayun.length - 1];
+        const secondLast = filteredDayun.length > 1 ? filteredDayun[filteredDayun.length - 2] : null;
+        
+        let dir = 1; // Default forward
+        if (secondLast) {
+          const idx1 = JIAZI.indexOf(secondLast.ganZhi);
+          const idx2 = JIAZI.indexOf(last.ganZhi);
+          if (idx1 !== -1 && idx2 !== -1) {
+            if ((idx1 + 1) % 60 === idx2) dir = 1;
+            else if ((idx1 - 1 + 60) % 60 === idx2) dir = -1;
+          }
+        }
+        
+        const lastIdx = JIAZI.indexOf(last.ganZhi);
+        let nextIdx = 0;
+        if (lastIdx !== -1) {
+          nextIdx = (lastIdx + dir + 60) % 60;
+        }
+        
+        const nextGanZhi = JIAZI[nextIdx];
+        const nextSYear = last.endYear + 1;
+        const nextEYear = nextSYear + 9;
+        const nextStartAge = nextSYear - birthYear;
+        const nextEndAge = nextEYear - birthYear;
+        
+        const gan = nextGanZhi.charAt(0);
+        const zhi = nextGanZhi.charAt(1);
+        
+        let shishenGan = '';
+        if (dayGan && gan && window.calculateShiShen) {
+          shishenGan = window.calculateShiShen(dayGan, gan);
+        }
+        
+        const hiddenGans = zhi && window.HIDDEN_GANS ? (window.HIDDEN_GANS[zhi] || []) : [];
+        const shishenHidden = hiddenGans.map(h => dayGan && window.calculateShiShen ? window.calculateShiShen(dayGan, h) : '').filter(h => h);
+        
+        filteredDayun.push({
+          startYear: nextSYear,
+          endYear: nextEYear,
+          ganZhi: nextGanZhi,
+          gan: gan,
+          zhi: zhi,
+          shishenGan: shishenGan, // 十神 for 天干 (2nd row)
+          shishenHidden: shishenHidden, // 十神 for 地支藏干 (4th row)
+          startAge: nextStartAge,
+          endAge: nextEndAge
+        });
+      }
+    }
+
     // Return Dayun information
     return {
       dayunList: filteredDayun,

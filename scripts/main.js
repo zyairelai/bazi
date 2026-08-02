@@ -540,7 +540,7 @@ function populateBaziTable(baziDetails, branchHighlights = {}, stemHighlights = 
               color = stemInfo.color;
             }
           }
-          return `<span style="color: ${color}; font-weight: 700; margin-right: 4px;">${gan}</span><span style="color: #4b5563;">${fuxingName}</span>`;
+          return `<span style="color: ${color}; font-weight: 700; margin-right: 4px;">${gan}</span><span style="color: #1f2937;">${fuxingName}</span>`;
         });
         auxiliaryEl.innerHTML = combined.join('<br>');
       } else {

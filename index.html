@@ -10,7 +10,7 @@
   <link rel="shortcut icon" href="favicon/Favico.ico">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1a1a1a">
-  <link rel="stylesheet" href="style.css?v=12" />
+  <link rel="stylesheet" href="style.css?v=18" />
 </head>
 
 <body>
@@ -42,7 +42,8 @@
           <input type="text" id="quickDateInput" class="quick-date-input" placeholder="YYMMDD" maxlength="6"
             pattern="\d{6}">
         </div>
-        <div class="date-selects-row">
+        <div class="mobile-date-time-wrapper">
+          <div class="date-selects-row">
           <select id="yearSelect" class="datetime-select"></select>
           <select id="monthSelect" class="datetime-select"></select>
           <select id="dateSelect" class="datetime-select"></select>
@@ -80,6 +81,7 @@
           </select>
           <button id="resetBtn">🔄</button>
           <button id="copyBtn">📋</button>
+        </div>
         </div>
       </div>
     </div>
@@ -146,19 +148,17 @@
     </div>
     <div class="content content-dayun">
       <h2 class="content-title">大运走势</h2>
+      <div style="padding: 0 25px;">
+        <div class="dayun-header" style="border: 1px solid var(--border-color); border-bottom: none; border-radius: 4px 4px 0 0;">
+          <div class="dayun-header-grid-wrapper">
+            <div class="dayun-header-line">起运：<span id="dayun-start-luck"></span></div>
+            <div class="dayun-header-line">交运：<span id="dayun-transition-date"></span></div>
+          </div>
+        </div>
+      </div>
       <div style="position: relative; padding: 0 25px;">
         <button id="dayun-prev-btn" class="dayun-nav-btn dayun-prev-btn">◀</button>
         <table class="dayun-table">
-        <thead>
-          <tr>
-            <th colspan="7" class="dayun-header">
-              <div class="dayun-header-grid-wrapper">
-                <div class="dayun-header-line">起运：<span id="dayun-start-luck"></span></div>
-                <div class="dayun-header-line">交运：<span id="dayun-transition-date"></span></div>
-              </div>
-            </th>
-          </tr>
-        </thead>
         <tbody>
           <tr>
             <td class="dayun-cell" id="dayun-0-shishen-top"></td>
