@@ -330,15 +330,15 @@ body {
 }
 
 .bazi-table thead th:first-child {
-  width: 80px;
+  width: 60px;
 }
 
 .bazi-table thead th:not(:first-child) {
-  width: calc((100% - 80px) / 4);
+  width: calc((100% - 60px) / 4);
 }
 
 .bazi-table tbody td {
-  width: calc((100% - 80px) / 4);
+  width: calc((100% - 60px) / 4);
 }
 
 .bazi-table tbody th {
@@ -346,13 +346,13 @@ body {
   font-weight: 600;
   color: #1f2937;
   text-align: center;
-  width: 80px;
+  width: 60px;
 }
 
 .bazi-table .corner-cell {
   background: #fff;
   border: none;
-  width: 80px;
+  width: 60px;
 }
 
 .bazi-cell {
