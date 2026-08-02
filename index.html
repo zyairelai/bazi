@@ -10,7 +10,7 @@
   <link rel="shortcut icon" href="favicon/Favico.ico">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1a1a1a">
-  <link rel="stylesheet" href="style.css?v=18" />
+  <link rel="stylesheet" href="style.css?v=19" />
 </head>
 
 <body>
@@ -42,11 +42,11 @@
           <input type="text" id="quickDateInput" class="quick-date-input" placeholder="YYMMDD" maxlength="6"
             pattern="\d{6}">
         </div>
-        <div class="mobile-date-time-wrapper">
-          <div class="date-selects-row">
+        <div class="date-selects-row">
           <select id="yearSelect" class="datetime-select"></select>
           <select id="monthSelect" class="datetime-select"></select>
           <select id="dateSelect" class="datetime-select"></select>
+          <button id="resetBtn">🔄</button>
         </div>
         <div class="time-button-row">
           <select id="hourSelect" class="datetime-select"></select>
@@ -79,9 +79,7 @@
             <option value="13">UTC+13</option>
             <option value="14">UTC+14</option>
           </select>
-          <button id="resetBtn">🔄</button>
           <button id="copyBtn">📋</button>
-        </div>
         </div>
       </div>
     </div>
