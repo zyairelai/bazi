@@ -91,6 +91,10 @@ body {
   order: 1;
 }
 
+#copyBtn {
+  order: 2;
+}
+
 .date-selects-row button,
 .time-button-row button {
   padding: 8px 14px;
