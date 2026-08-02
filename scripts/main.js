@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
     prevBtn.addEventListener('click', function() {
       if (lastDayunResult && lastDayunResult.dayunList) {
         if (currentDayunOffset > 0) {
-          currentDayunOffset--;
+          currentDayunOffset = Math.max(0, currentDayunOffset - 6);
           isProgrammaticOffset = true;
           populateDayunTable(lastDayunResult, lastDayunHighlightColor, lastDayunActiveIndex);
         }
@@ -44,8 +44,8 @@ document.addEventListener('DOMContentLoaded', function () {
   if (nextBtn) {
     nextBtn.addEventListener('click', function() {
       if (lastDayunResult && lastDayunResult.dayunList) {
-        if (currentDayunOffset < lastDayunResult.dayunList.length - 7) {
-          currentDayunOffset++;
+        if (currentDayunOffset < lastDayunResult.dayunList.length - 6) {
+          currentDayunOffset = Math.min(lastDayunResult.dayunList.length - 6, currentDayunOffset + 6);
           isProgrammaticOffset = true;
           populateDayunTable(lastDayunResult, lastDayunHighlightColor, lastDayunActiveIndex);
         }
@@ -624,9 +624,11 @@ function populateDayunTable(result, dayunHighlightColor, activeIndex = -1) {
     lastDayunHighlightColor = dayunHighlightColor;
     lastDayunActiveIndex = activeIndex;
     const dayunList = result.dayunList || [];
-    const maxColumns = 7;
+    const maxColumns = 6;
     if (activeIndex !== -1) {
-      currentDayunOffset = activeIndex - 3;
+      // Find which page of 6 the activeIndex falls into
+      const pageIndex = Math.floor(activeIndex / 6);
+      currentDayunOffset = pageIndex * 6;
     } else {
       currentDayunOffset = 0;
     }
@@ -644,7 +646,7 @@ function populateDayunTable(result, dayunHighlightColor, activeIndex = -1) {
   if (jiaoyunEl && result.jiaoyunDate) jiaoyunEl.textContent = result.jiaoyunDate;
 
   const dayunList = result.dayunList || [];
-  const maxColumns = 7;
+  const maxColumns = 6;
 
   // Rows configuration to avoid repetition
   const rows = [
@@ -771,6 +773,16 @@ function populateDayunTable(result, dayunHighlightColor, activeIndex = -1) {
     }
   } catch (e) {
     console.warn('Highlight current DaYun failed:', e);
+  }
+
+  // Handle navigation arrow visibility
+  const prevBtn = document.getElementById('dayun-prev-btn');
+  const nextBtn = document.getElementById('dayun-next-btn');
+  if (prevBtn) {
+    prevBtn.style.display = currentDayunOffset > 0 ? 'flex' : 'none';
+  }
+  if (nextBtn) {
+    nextBtn.style.display = currentDayunOffset < dayunList.length - maxColumns ? 'flex' : 'none';
   }
 }
 

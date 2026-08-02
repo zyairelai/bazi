@@ -80,15 +80,15 @@ body {
 }
 
 .date-selects-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+  display: contents;
 }
 
 .time-button-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+  display: contents;
+}
+
+#resetBtn {
+  order: 1;
 }
 
 .date-selects-row button,
@@ -465,7 +465,7 @@ body {
 }
 
 .dayun-table tbody td {
-  width: calc(100% / 7);
+  width: calc(100% / 6);
 }
 
 .dayun-table th,
@@ -487,20 +487,18 @@ body {
 /* Renamed to force cache update */
 .dayun-header-grid-wrapper {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   width: 100%;
   padding: 10px 0;
   align-items: center;
 }
 
 .dayun-header-line:nth-child(1) {
-  grid-column: 1 / 5;
-  padding-left: 8px;
+  grid-column: 1 / 4;
 }
 
 .dayun-header-line:nth-child(2) {
-  grid-column: 5 / 8;
-  padding-left: 8px;
+  grid-column: 4 / 7;
 }
 
 .dayun-header-line {
@@ -508,7 +506,8 @@ body {
   min-height: 36px;
   display: flex;
   align-items: center;
-  text-align: left;
+  justify-content: center;
+  text-align: center;
   font-size: 15px;
   font-weight: 600;
 }
