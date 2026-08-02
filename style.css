@@ -543,6 +543,13 @@ body {
     padding: 8px 4px;
   }
 
+  .dayun-table tbody tr:nth-child(4) td {
+    font-size: 11px;
+    letter-spacing: -0.5px;
+    padding: 8px 1px;
+    white-space: nowrap;
+  }
+
   .dayun-table .dayun-header {
     padding: 12px 4px;
   }
