@@ -330,15 +330,15 @@ body {
 }
 
 .bazi-table thead th:first-child {
-  width: 52px;
+  width: 80px;
 }
 
 .bazi-table thead th:not(:first-child) {
-  width: calc((100% - 52px) / 4);
+  width: calc((100% - 80px) / 4);
 }
 
 .bazi-table tbody td {
-  width: calc((100% - 52px) / 4);
+  width: calc((100% - 80px) / 4);
 }
 
 .bazi-table tbody th {
@@ -346,13 +346,13 @@ body {
   font-weight: 600;
   color: #1f2937;
   text-align: center;
-  width: 52px;
+  width: 80px;
 }
 
 .bazi-table .corner-cell {
   background: #fff;
   border: none;
-  width: 52px;
+  width: 80px;
 }
 
 .bazi-cell {
@@ -541,6 +541,18 @@ body {
   .dayun-table th,
   .dayun-table td {
     padding: 8px 4px;
+  }
+
+  /* Compact BaZi label column ONLY on mobile */
+  .bazi-table thead th:first-child,
+  .bazi-table tbody th,
+  .bazi-table .corner-cell {
+    width: 44px;
+  }
+
+  .bazi-table thead th:not(:first-child),
+  .bazi-table tbody td {
+    width: calc((100% - 44px) / 4);
   }
 
   .dayun-table tbody tr:nth-child(4) td {
