@@ -16,24 +16,33 @@ def calc_dayun(solar, gender):
     is_male = gender.lower() == 'm' or gender.lower() == '1'
     yun = eight_char.getYun(is_male)
 
-    # Get 起运 (Qi Yun): time after birth Da Yun starts
-    start_years = yun.getStartYear()
-    start_months = yun.getStartMonth()
-    start_days = yun.getStartDay()
-    start_solar = yun.getStartSolar()
-    start_solar_str = start_solar.toYmd()
-
     # Generate Da Yun periods
     dayun_list = yun.getDaYun()
 
-    for da_yun in dayun_list:
-        s_year = da_yun.getStartYear()
-        e_year = da_yun.getEndYear()
-        gan_zhi = da_yun.getGanZhi()
+    # Filter dayun list to make sure we only consider valid ones with GanZhi
+    valid_dayuns = [d for d in dayun_list if d.getGanZhi() and d.getGanZhi().strip()]
 
-        # Only show Da Yun if it overlaps 2010–2060
-        if e_year >= 2024 and s_year <= 2040:
-            print(f"{s_year}-{e_year} {gan_zhi}大运")
+    if valid_dayuns:
+        current_year = datetime.now().year
+        active_idx = -1
+        for idx, d in enumerate(valid_dayuns):
+            if current_year >= d.getStartYear() and current_year <= d.getEndYear():
+                active_idx = idx
+                break
+
+        # If not started yet, default to first DaYun
+        if active_idx == -1 and current_year < valid_dayuns[0].getStartYear():
+            active_idx = 0
+
+        if active_idx != -1:
+            # Print current DaYun
+            curr = valid_dayuns[active_idx]
+            print(f"{curr.getStartYear()}-{curr.getEndYear()} {curr.getGanZhi()}大运")
+
+            # Print next DaYun if it exists
+            if active_idx + 1 < len(valid_dayuns):
+                nxt = valid_dayuns[active_idx + 1]
+                print(f"{nxt.getStartYear()}-{nxt.getEndYear()} {nxt.getGanZhi()}大运")
 
 # ========== Main Script ==========
 

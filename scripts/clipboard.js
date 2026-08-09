@@ -37,17 +37,27 @@ function getCurrentBazi() {
   // Format output: header + dayun list
   let result = baziResult.header || '';
 
-  // Add DaYun periods - only show periods that overlap with 2024-2040
-  if (dayunResult && dayunResult.dayunList) {
-    for (let i = 0; i < dayunResult.dayunList.length; i++) {
-      const daYun = dayunResult.dayunList[i];
-      const sYear = daYun.startYear;
-      const eYear = daYun.endYear;
-      const ganZhi = daYun.ganZhi;
+  // Add DaYun periods - only show current and next DaYun dynamically
+  if (dayunResult && dayunResult.dayunList && dayunResult.dayunList.length > 0) {
+    const currentYear = new Date().getFullYear();
+    let activeIndex = dayunResult.dayunList.findIndex(d => currentYear >= d.startYear && currentYear <= d.endYear);
 
-      // Filter: only show DaYun that overlaps with 2024-2040
-      if (ganZhi && eYear >= 2024 && sYear <= 2040) {
-        result += `${sYear}-${eYear} ${ganZhi}大运\n`;
+    // If current year is before the first DaYun starts, default to the first DaYun
+    if (activeIndex === -1 && currentYear < dayunResult.dayunList[0].startYear) {
+      activeIndex = 0;
+    }
+
+    if (activeIndex !== -1) {
+      // Current DaYun
+      const currentDaYun = dayunResult.dayunList[activeIndex];
+      if (currentDaYun && currentDaYun.ganZhi) {
+        result += `${currentDaYun.startYear}-${currentDaYun.endYear} ${currentDaYun.ganZhi}大运\n`;
+      }
+
+      // Next DaYun
+      const nextDaYun = dayunResult.dayunList[activeIndex + 1];
+      if (nextDaYun && nextDaYun.ganZhi) {
+        result += `${nextDaYun.startYear}-${nextDaYun.endYear} ${nextDaYun.ganZhi}大运\n`;
       }
     }
   }
