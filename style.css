@@ -977,16 +977,7 @@ body.is-standalone .desktop-actions {
   right: 0;
 }
 
-/* Shensha Styles */
-.shensha-auspicious {
-  color: #e11d48; /* Red for auspicious */
-}
-.shensha-inauspicious {
-  color: #475569; /* Grey for inauspicious */
-}
-.shensha-neutral {
-  color: #64748b; /* Light grey for neutral */
-}
+/* Shensha Layout Styles */
 .shensha-auspicious,
 .shensha-inauspicious,
 .shensha-neutral {
