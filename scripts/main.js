@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initClipboard();
   initResetButton();
   initQuickDateInput();
+  initDayunSwipe();
   // Add event listener for date changes to update Bazi table
   const yearSelect = document.getElementById('yearSelect');
   const monthSelect = document.getElementById('monthSelect');
@@ -158,6 +159,54 @@ function initQuickDateInput() {
       }
     }
   });
+}
+
+function initDayunSwipe() {
+  const table = document.querySelector('.dayun-table');
+  if (!table) return;
+  const tableContainer = table.parentElement;
+
+  let touchstartX = 0;
+  let touchendX = 0;
+  let touchstartY = 0;
+  let touchendY = 0;
+
+  tableContainer.addEventListener('touchstart', e => {
+    touchstartX = e.changedTouches[0].screenX;
+    touchstartY = e.changedTouches[0].screenY;
+  }, {passive: true});
+
+  tableContainer.addEventListener('touchend', e => {
+    touchendX = e.changedTouches[0].screenX;
+    touchendY = e.changedTouches[0].screenY;
+    handleSwipe();
+  }, {passive: true});
+
+  function handleSwipe() {
+    // Only allow swipe on mobile screens
+    if (window.innerWidth > 768) return;
+
+    const swipeThreshold = 40;
+    const verticalThreshold = 40;
+    
+    if (Math.abs(touchendY - touchstartY) > verticalThreshold) {
+      return;
+    }
+
+    if (touchendX < touchstartX - swipeThreshold) {
+      // Swiped left, show next
+      const nextBtn = document.getElementById('dayun-next-btn');
+      if (nextBtn && nextBtn.style.display !== 'none') {
+        nextBtn.click();
+      }
+    } else if (touchendX > touchstartX + swipeThreshold) {
+      // Swiped right, show prev
+      const prevBtn = document.getElementById('dayun-prev-btn');
+      if (prevBtn && prevBtn.style.display !== 'none') {
+        prevBtn.click();
+      }
+    }
+  }
 }
 
 function initResetButton() {
@@ -729,6 +778,7 @@ function populateDayunTable(result, dayunHighlightColor, activeIndex = -1) {
           // Add click listener to select this Dayun
           item.onclick = function () {
             selectedDayunIndex = dataIndex;
+            isProgrammaticOffset = true;
             updateBaziTable();
           };
           item.style.cursor = "pointer";
