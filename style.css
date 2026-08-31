@@ -892,7 +892,7 @@ body.is-standalone .desktop-actions {
 }
 
 .quick-date-input {
-  width: 135px;
+  width: 145px;
   padding: 8px 10px;
   font-size: 16px; /* matching placeholder size better, but visually aligned */
   border-radius: 8px;

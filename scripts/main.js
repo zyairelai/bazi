@@ -115,20 +115,51 @@ function initQuickDateInput() {
   if (!quickDateInput) return;
 
   quickDateInput.addEventListener('input', function(e) {
-    let val = this.value;
-    val = val.replace(/\D/g, ''); // only accept digits
-    this.value = val;
+    let raw = this.value.replace(/\D/g, ''); // Extract only digits
+    if (raw.length > 8) raw = raw.substring(0, 8);
 
-    if (val.length === 8) {
-      const year = parseInt(val.substring(0, 4), 10);
-      const mm = parseInt(val.substring(4, 6), 10);
-      const dd = parseInt(val.substring(6, 8), 10);
+    // Format with hyphens automatically
+    let formatted = '';
+    if (raw.length > 0) {
+      formatted = raw.substring(0, 4);
+      if (raw.length >= 5) {
+        formatted += '-' + raw.substring(4, 6);
+        if (raw.length >= 7) {
+          formatted += '-' + raw.substring(6, 8);
+        }
+      } else if (raw.length === 4 && e.inputType !== 'deleteContentBackward') {
+        formatted += '-';
+      }
+    }
+    this.value = formatted;
+
+    // Trigger calculation when 8 digits are complete
+    if (raw.length === 8) {
+      const year = parseInt(raw.substring(0, 4), 10);
+      const mm = parseInt(raw.substring(4, 6), 10);
+      const dd = parseInt(raw.substring(6, 8), 10);
 
       const yearSelect = document.getElementById('yearSelect');
       const monthSelect = document.getElementById('monthSelect');
       const dateSelect = document.getElementById('dateSelect');
 
       if (yearSelect && monthSelect && dateSelect) {
+        // Check if year exists in yearSelect; if not, add it dynamically
+        let yearOption = Array.from(yearSelect.options).find(opt => parseInt(opt.value, 10) === year);
+        if (!yearOption) {
+          yearOption = document.createElement('option');
+          yearOption.value = year;
+          yearOption.textContent = year;
+          // Insert in sorted order
+          const options = Array.from(yearSelect.options);
+          const index = options.findIndex(opt => parseInt(opt.value, 10) > year);
+          if (index === -1) {
+            yearSelect.appendChild(yearOption);
+          } else {
+            yearSelect.insertBefore(yearOption, options[index]);
+          }
+        }
+
         yearSelect.value = year;
         yearSelect.dispatchEvent(new Event('change'));
 
