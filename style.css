@@ -139,8 +139,7 @@ body {
     width: 100%;
   }
 
-  .gender-radio-container,
-  .calendar-radio-container {
+  .gender-radio-container {
     flex: 0 1 auto;
     justify-content: center;
     padding: 6px 4px;
@@ -187,8 +186,7 @@ body {
   }
 }
 
-.gender-radio-container,
-.calendar-radio-container {
+.gender-radio-container {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -894,7 +892,7 @@ body.is-standalone .desktop-actions {
 }
 
 .quick-date-input {
-  width: 110px;
+  width: 135px;
   padding: 8px 10px;
   font-size: 16px; /* matching placeholder size better, but visually aligned */
   border-radius: 8px;

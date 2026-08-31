@@ -36,7 +36,6 @@
         const date = document.getElementById('dateSelect').value;
         const hour = document.getElementById('hourSelect').value;
         const gender = document.querySelector('input[name="gender"]:checked').value;
-        const calendar = document.querySelector('input[name="calendar"]:checked').value;
 
         const entry = {
             id: Date.now(),
@@ -46,7 +45,6 @@
             date,
             hour,
             gender,
-            calendar,
             timestamp: new Date().toLocaleString()
         };
 
@@ -262,9 +260,6 @@
 
         const genderRadio = document.querySelector(`input[name="gender"][value="${entry.gender}"]`);
         if (genderRadio) genderRadio.checked = true;
-
-        const calendarRadio = document.querySelector(`input[name="calendar"][value="${entry.calendar}"]`);
-        if (calendarRadio) calendarRadio.checked = true;
 
         document.getElementById('yearSelect').value = entry.year;
         document.getElementById('monthSelect').value = entry.month;

@@ -29,18 +29,8 @@
               <span>女</span>
             </label>
           </div>
-          <div class="calendar-radio-container">
-            <label class="gender-radio-label">
-              <input type="radio" name="calendar" value="solar" id="calendarSolar" checked>
-              <span>阳历</span>
-            </label>
-            <label class="gender-radio-label">
-              <input type="radio" name="calendar" value="lunar" id="calendarLunar">
-              <span>阴历</span>
-            </label>
-          </div>
-          <input type="text" id="quickDateInput" class="quick-date-input" placeholder="YYMMDD" maxlength="6"
-            pattern="\d{6}">
+          <input type="text" id="quickDateInput" class="quick-date-input" placeholder="YYYYMMDD" maxlength="8"
+            pattern="\d{8}">
         </div>
         <div class="date-selects-row">
           <select id="yearSelect" class="datetime-select"></select>
