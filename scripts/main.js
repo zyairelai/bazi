@@ -119,51 +119,37 @@ function initQuickDateInput() {
     val = val.replace(/\D/g, ''); // only accept digits
     this.value = val;
 
-    let year, mm, dd;
-
     if (val.length === 8) {
-      year = parseInt(val.substring(0, 4), 10);
-      mm = parseInt(val.substring(4, 6), 10);
-      dd = parseInt(val.substring(6, 8), 10);
-    } else if (val.length === 6) {
-      const yy = parseInt(val.substring(0, 2), 10);
-      mm = parseInt(val.substring(2, 4), 10);
-      dd = parseInt(val.substring(4, 6), 10);
+      const year = parseInt(val.substring(0, 4), 10);
+      const mm = parseInt(val.substring(4, 6), 10);
+      const dd = parseInt(val.substring(6, 8), 10);
 
-      if (yy >= 35 && yy <= 99) {
-        year = 1900 + yy;
-      } else if (yy >= 0 && yy <= 34) {
-        year = 2000 + yy;
+      const yearSelect = document.getElementById('yearSelect');
+      const monthSelect = document.getElementById('monthSelect');
+      const dateSelect = document.getElementById('dateSelect');
+
+      if (yearSelect && monthSelect && dateSelect) {
+        yearSelect.value = year;
+        yearSelect.dispatchEvent(new Event('change'));
+
+        monthSelect.value = String(mm);
+        monthSelect.dispatchEvent(new Event('change'));
+
+        setTimeout(() => {
+          if (typeof updateDaysDropdown === 'function') {
+            updateDaysDropdown();
+          }
+          const dayOptions = Array.from(dateSelect.options);
+          if (dayOptions.some(opt => parseInt(opt.value, 10) === dd)) {
+            dateSelect.value = String(dd);
+          } else if (dayOptions.length > 0) {
+            dateSelect.value = dayOptions[dayOptions.length - 1].value;
+          }
+          dateSelect.dispatchEvent(new Event('change'));
+          quickDateInput.value = '';
+          quickDateInput.blur();
+        }, 50);
       }
-    } else {
-      return;
-    }
-
-    const yearSelect = document.getElementById('yearSelect');
-    const monthSelect = document.getElementById('monthSelect');
-    const dateSelect = document.getElementById('dateSelect');
-
-    if (yearSelect && monthSelect && dateSelect) {
-      yearSelect.value = year;
-      yearSelect.dispatchEvent(new Event('change'));
-
-      monthSelect.value = String(mm);
-      monthSelect.dispatchEvent(new Event('change'));
-
-      setTimeout(() => {
-        if (typeof updateDaysDropdown === 'function') {
-          updateDaysDropdown();
-        }
-        const dayOptions = Array.from(dateSelect.options);
-        if (dayOptions.some(opt => parseInt(opt.value, 10) === dd)) {
-          dateSelect.value = String(dd);
-        } else if (dayOptions.length > 0) {
-          dateSelect.value = dayOptions[dayOptions.length - 1].value;
-        }
-        dateSelect.dispatchEvent(new Event('change'));
-        quickDateInput.value = '';
-        quickDateInput.blur();
-      }, 50);
     }
   });
 }
