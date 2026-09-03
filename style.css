@@ -908,6 +908,31 @@ body.is-standalone .desktop-actions {
   flex-shrink: 0; /* Prevent squishing on smaller desktop screens */
 }
 
+.date-format-btn {
+  padding: 8px 10px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 1px solid #c5cbd6;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  white-space: nowrap;
+  height: 41px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.date-format-btn:hover {
+  background: #f0f2f6;
+}
+
+.date-format-btn:active {
+  transform: scale(0.95);
+}
+
 .quick-date-input:focus {
   outline: none;
   border-color: var(--primary-color);

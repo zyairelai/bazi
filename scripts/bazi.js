@@ -58,64 +58,66 @@ function getHiddenGanFromConstants(zhi) {
   return window.HIDDEN_GANS[zhi] || [];
 }
 
-function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
+function calculateBazi(year, month, day, hour, gender, calendarType = 'solar', inputTimezone = 8) {
   try {
-    // 1. 根据日历类型初始化对象
+    // 1. Convert input date & time from inputTimezone to target UTC+8 (Bazi Standard Time)
+    let calcYear = parseInt(year);
+    let calcMonth = parseInt(month);
+    let calcDay = parseInt(day);
+    let calcHour = hour !== null && hour !== undefined && hour !== "" ? parseInt(hour) : null;
+
+    if (inputTimezone !== 8 && calcHour !== null) {
+      // Calculate offset hours difference (UTC+8 minus inputTimezone)
+      const diffHours = 8 - inputTimezone;
+      const dateObj = new Date(Date.UTC(calcYear, calcMonth - 1, calcDay, calcHour, 0, 0));
+      dateObj.setUTCHours(dateObj.getUTCHours() + diffHours);
+
+      calcYear = dateObj.getUTCFullYear();
+      calcMonth = dateObj.getUTCMonth() + 1;
+      calcDay = dateObj.getUTCDate();
+      calcHour = dateObj.getUTCHours();
+    }
+
+    // 2. Initialize objects based on calendar type
     let solar;
     let lunar;
-    // 检查 hour 是否有效 (0-23)
-    const hasHour = (hour !== null && hour !== undefined && hour !== "");
+    const hasHour = (calcHour !== null && calcHour !== undefined);
 
     let solarForDay, solarForHour;
     let hourGz = '';
 
     if (calendarType === 'lunar') {
-      // 阴历输入：直接使用农历日期
-      const yearInt = parseInt(year);
-      const monthInt = parseInt(month);
-      const dayInt = parseInt(day);
-
-      // 检查是否是闰月（如果月份大于12，则月份-12是闰月月份）
       let isLeapMonth = false;
-      let actualMonth = monthInt;
-      if (monthInt > 12) {
+      let actualMonth = calcMonth;
+      if (calcMonth > 12) {
         isLeapMonth = true;
-        actualMonth = monthInt - 12;
+        actualMonth = calcMonth - 12;
       }
 
-      // 从农历创建Lunar对象
-      // lunar-javascript API: Lunar.fromYmd(year, month, day, isLeapMonth)
       try {
         if (hasHour) {
-          const hourInt = parseInt(hour);
-          // 处理晚子时 (23:00-23:59): 需要特殊处理
-          if (hourInt === 23) {
-            // 晚子时：使用下一天的农历日期
-            lunar = Lunar.fromYmd(yearInt, actualMonth, dayInt, isLeapMonth);
+          if (calcHour === 23) {
+            lunar = Lunar.fromYmd(calcYear, actualMonth, calcDay, isLeapMonth);
             const nextLunar = lunar.next(1);
             solarForDay = nextLunar.getSolar();
             solarForHour = nextLunar.getSolar();
           } else {
-            // 早子时 (0) 和其他时辰：使用当前农历日期
-            lunar = Lunar.fromYmd(yearInt, actualMonth, dayInt, isLeapMonth);
+            lunar = Lunar.fromYmd(calcYear, actualMonth, calcDay, isLeapMonth);
             solarForDay = lunar.getSolar();
-            // For hour calculation, we need to use the solar date with the hour
-            solarForHour = Solar.fromYmdHms(solarForDay.getYear(), solarForDay.getMonth(), solarForDay.getDay(), hourInt, 0, 0);
+            solarForHour = Solar.fromYmdHms(solarForDay.getYear(), solarForDay.getMonth(), solarForDay.getDay(), calcHour, 0, 0);
           }
           solar = solarForDay;
         } else {
-          lunar = Lunar.fromYmd(yearInt, actualMonth, dayInt, isLeapMonth);
+          lunar = Lunar.fromYmd(calcYear, actualMonth, calcDay, isLeapMonth);
           solarForDay = lunar.getSolar();
           solarForHour = solarForDay;
           solar = solarForDay;
         }
       } catch (e) {
-        // Fallback: try without leap month parameter if API doesn't support it
         try {
           if (hasHour) {
-            const hourInt = parseInt(hour);
-            if (hourInt === 23) {
-              lunar = Lunar.fromYmd(yearInt, actualMonth, dayInt);
+            if (calcHour === 23) {
+              lunar = Lunar.fromYmd(calcYear, actualMonth, calcDay);
               if (isLeapMonth && lunar.setLeapMonth) {
                 lunar.setLeapMonth(true);
               }
@@ -123,16 +125,16 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
               solarForDay = nextLunar.getSolar();
               solarForHour = nextLunar.getSolar();
             } else {
-              lunar = Lunar.fromYmd(yearInt, actualMonth, dayInt);
+              lunar = Lunar.fromYmd(calcYear, actualMonth, calcDay);
               if (isLeapMonth && lunar.setLeapMonth) {
                 lunar.setLeapMonth(true);
               }
               solarForDay = lunar.getSolar();
-              solarForHour = Solar.fromYmdHms(solarForDay.getYear(), solarForDay.getMonth(), solarForDay.getDay(), hourInt, 0, 0);
+              solarForHour = Solar.fromYmdHms(solarForDay.getYear(), solarForDay.getMonth(), solarForDay.getDay(), calcHour, 0, 0);
             }
             solar = solarForDay;
           } else {
-            lunar = Lunar.fromYmd(yearInt, actualMonth, dayInt);
+            lunar = Lunar.fromYmd(calcYear, actualMonth, calcDay);
             if (isLeapMonth && lunar.setLeapMonth) {
               lunar.setLeapMonth(true);
             }
@@ -141,53 +143,45 @@ function calculateBazi(year, month, day, hour, gender, calendarType = 'solar') {
             solar = solarForDay;
           }
         } catch (e2) {
-          throw new Error(`Invalid lunar date: ${yearInt}-${actualMonth}${isLeapMonth ? '(闰)' : ''}-${dayInt}`);
+          throw new Error(`Invalid lunar date: ${calcYear}-${actualMonth}${isLeapMonth ? '(闰)' : ''}-${calcDay}`);
         }
       }
     } else {
-      // 阳历输入：原有逻辑
       if (hasHour) {
-        const hourInt = parseInt(hour);
-        // 处理晚子时 (23:00-23:59): 需要特殊处理
-        if (hourInt === 23) {
-          // 晚子时：使用下一天的日期来计算农历日，小时干支用下一天的早子时
-          const nextDay = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (calcHour === 23) {
+          const nextDay = new Date(calcYear, calcMonth - 1, calcDay);
           nextDay.setDate(nextDay.getDate() + 1);
           solarForDay = Solar.fromYmdHms(nextDay.getFullYear(), nextDay.getMonth() + 1, nextDay.getDate(), 0, 0, 0);
-          // 小时干支用下一天的早子时 (hour 0 of next day)
           solarForHour = Solar.fromYmdHms(nextDay.getFullYear(), nextDay.getMonth() + 1, nextDay.getDate(), 0, 0, 0);
         } else {
-          // 早子时 (0) 和其他时辰：使用当前日期
-          solarForDay = Solar.fromYmdHms(parseInt(year), parseInt(month), parseInt(day), hourInt, 0, 0);
+          solarForDay = Solar.fromYmdHms(calcYear, calcMonth, calcDay, calcHour, 0, 0);
           solarForHour = solarForDay;
         }
         solar = solarForDay;
       } else {
-        solar = Solar.fromYmd(parseInt(year), parseInt(month), parseInt(day));
+        solar = Solar.fromYmd(calcYear, calcMonth, calcDay);
         solarForDay = solar;
         solarForHour = solar;
       }
     }
 
-    // 2. 获取农历和八字基础对象
     if (!lunar) {
       lunar = solarForDay.getLunar();
     }
     const eightChar = lunar.getEightChar();
 
-    // 获取小时干支（对于晚子时，使用下一天的早子时的小时干支）
     const hourLunar = solarForHour.getLunar();
     const hourEightChar = hourLunar.getEightChar();
     hourGz = hourEightChar.getTime();
 
     let result = '';
 
-    // 3. 获取当前选定时间的干支
     const yearGz = eightChar.getYear();
     const monthGz = eightChar.getMonth();
     const dayGz = eightChar.getDay();
 
-    result += `${year} ${yearGz}年 ${monthGz}月 ${dayGz}日`;
+    const tzString = inputTimezone >= 0 ? `UTC+${inputTimezone}` : `UTC${inputTimezone}`;
+    result += `${year} ${yearGz}年 ${monthGz}月 ${dayGz}日 (${tzString})`;
 
     if (hasHour) {
       result += ` ${hourGz}时\n`;

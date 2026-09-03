@@ -26,7 +26,17 @@ document.addEventListener('DOMContentLoaded', function () {
   const monthSelect = document.getElementById('monthSelect');
   const dateSelect = document.getElementById('dateSelect');
   const hourSelect = document.getElementById('hourSelect');
+  const timezoneSelect = document.getElementById('timezoneSelect');
   const genderRadios = document.querySelectorAll('input[name="gender"]');
+
+  [yearSelect, monthSelect, dateSelect, hourSelect, timezoneSelect].forEach(el => {
+    if (el) {
+      el.addEventListener('change', () => {
+        selectedDayunIndex = null; // Reset selection on date/timezone change
+        updateBaziTable();
+      });
+    }
+  });
 
   // Listen to all date-related changes
   const prevBtn = document.getElementById('dayun-prev-btn');
@@ -112,77 +122,129 @@ function darkenColor(hex, amount = 0.2) {
 
 function initQuickDateInput() {
   const quickDateInput = document.getElementById('quickDateInput');
+  const toggleBtn = document.getElementById('toggleDateFormatBtn');
   if (!quickDateInput) return;
+
+  let isFullYear = false; // default is half YY-MM-DD (🍰)
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      isFullYear = !isFullYear;
+      if (isFullYear) {
+        toggleBtn.textContent = '🎂';
+        quickDateInput.placeholder = 'YYYY-MM-DD';
+      } else {
+        toggleBtn.textContent = '🍰';
+        quickDateInput.placeholder = 'YY-MM-DD';
+      }
+      quickDateInput.value = '';
+    });
+  }
 
   quickDateInput.addEventListener('input', function(e) {
     let raw = this.value.replace(/\D/g, ''); // Extract only digits
-    if (raw.length > 8) raw = raw.substring(0, 8);
+    
+    if (isFullYear) {
+      // YYYY-MM-DD (8 digits total: YYYYMMDD)
+      if (raw.length > 8) raw = raw.substring(0, 8);
 
-    // Format with hyphens automatically
-    let formatted = '';
-    if (raw.length > 0) {
-      formatted = raw.substring(0, 4);
-      if (raw.length >= 5) {
-        formatted += '-' + raw.substring(4, 6);
-        if (raw.length >= 7) {
-          formatted += '-' + raw.substring(6, 8);
+      let formatted = '';
+      if (raw.length > 0) {
+        formatted = raw.substring(0, 4);
+        if (raw.length >= 5) {
+          formatted += '-' + raw.substring(4, 6);
+          if (raw.length >= 7) {
+            formatted += '-' + raw.substring(6, 8);
+          }
+        } else if (raw.length === 4 && e.inputType !== 'deleteContentBackward') {
+          formatted += '-';
         }
-      } else if (raw.length === 4 && e.inputType !== 'deleteContentBackward') {
-        formatted += '-';
       }
-    }
-    this.value = formatted;
+      this.value = formatted;
 
-    // Trigger calculation when 8 digits are complete
-    if (raw.length === 8) {
-      const year = parseInt(raw.substring(0, 4), 10);
-      const mm = parseInt(raw.substring(4, 6), 10);
-      const dd = parseInt(raw.substring(6, 8), 10);
+      if (raw.length === 8) {
+        const year = parseInt(raw.substring(0, 4), 10);
+        const mm = parseInt(raw.substring(4, 6), 10);
+        const dd = parseInt(raw.substring(6, 8), 10);
+        triggerDateChange(year, mm, dd);
+      }
+    } else {
+      // YY-MM-DD (6 digits total: YYMMDD)
+      if (raw.length > 6) raw = raw.substring(0, 6);
 
-      const yearSelect = document.getElementById('yearSelect');
-      const monthSelect = document.getElementById('monthSelect');
-      const dateSelect = document.getElementById('dateSelect');
-
-      if (yearSelect && monthSelect && dateSelect) {
-        // Check if year exists in yearSelect; if not, add it dynamically
-        let yearOption = Array.from(yearSelect.options).find(opt => parseInt(opt.value, 10) === year);
-        if (!yearOption) {
-          yearOption = document.createElement('option');
-          yearOption.value = year;
-          yearOption.textContent = year;
-          // Insert in sorted order
-          const options = Array.from(yearSelect.options);
-          const index = options.findIndex(opt => parseInt(opt.value, 10) > year);
-          if (index === -1) {
-            yearSelect.appendChild(yearOption);
-          } else {
-            yearSelect.insertBefore(yearOption, options[index]);
+      let formatted = '';
+      if (raw.length > 0) {
+        formatted = raw.substring(0, 2);
+        if (raw.length >= 3) {
+          formatted += '-' + raw.substring(2, 4);
+          if (raw.length >= 5) {
+            formatted += '-' + raw.substring(4, 6);
           }
+        } else if (raw.length === 2 && e.inputType !== 'deleteContentBackward') {
+          formatted += '-';
+        }
+      }
+      this.value = formatted;
+
+      if (raw.length === 6) {
+        const yy = parseInt(raw.substring(0, 2), 10);
+        const currentYear = new Date().getFullYear();
+        const currentCentury = Math.floor(currentYear / 100) * 100;
+        // Two-digit year heuristic: if YY <= current year % 100, assume current century, else previous century
+        let year = currentCentury + yy;
+        if (yy > (currentYear % 100)) {
+          year = currentCentury - 100 + yy;
         }
 
-        yearSelect.value = year;
-        yearSelect.dispatchEvent(new Event('change'));
-
-        monthSelect.value = String(mm);
-        monthSelect.dispatchEvent(new Event('change'));
-
-        setTimeout(() => {
-          if (typeof updateDaysDropdown === 'function') {
-            updateDaysDropdown();
-          }
-          const dayOptions = Array.from(dateSelect.options);
-          if (dayOptions.some(opt => parseInt(opt.value, 10) === dd)) {
-            dateSelect.value = String(dd);
-          } else if (dayOptions.length > 0) {
-            dateSelect.value = dayOptions[dayOptions.length - 1].value;
-          }
-          dateSelect.dispatchEvent(new Event('change'));
-          quickDateInput.value = '';
-          quickDateInput.blur();
-        }, 50);
+        const mm = parseInt(raw.substring(2, 4), 10);
+        const dd = parseInt(raw.substring(4, 6), 10);
+        triggerDateChange(year, mm, dd);
       }
     }
   });
+
+  function triggerDateChange(year, mm, dd) {
+    const yearSelect = document.getElementById('yearSelect');
+    const monthSelect = document.getElementById('monthSelect');
+    const dateSelect = document.getElementById('dateSelect');
+
+    if (yearSelect && monthSelect && dateSelect) {
+      let yearOption = Array.from(yearSelect.options).find(opt => parseInt(opt.value, 10) === year);
+      if (!yearOption) {
+        yearOption = document.createElement('option');
+        yearOption.value = year;
+        yearOption.textContent = year;
+        const options = Array.from(yearSelect.options);
+        const index = options.findIndex(opt => parseInt(opt.value, 10) > year);
+        if (index === -1) {
+          yearSelect.appendChild(yearOption);
+        } else {
+          yearSelect.insertBefore(yearOption, options[index]);
+        }
+      }
+
+      yearSelect.value = year;
+      yearSelect.dispatchEvent(new Event('change'));
+
+      monthSelect.value = String(mm);
+      monthSelect.dispatchEvent(new Event('change'));
+
+      setTimeout(() => {
+        if (typeof updateDaysDropdown === 'function') {
+          updateDaysDropdown();
+        }
+        const dayOptions = Array.from(dateSelect.options);
+        if (dayOptions.some(opt => parseInt(opt.value, 10) === dd)) {
+          dateSelect.value = String(dd);
+        } else if (dayOptions.length > 0) {
+          dateSelect.value = dayOptions[dayOptions.length - 1].value;
+        }
+        dateSelect.dispatchEvent(new Event('change'));
+        quickDateInput.value = '';
+        quickDateInput.blur();
+      }, 50);
+    }
+  }
 }
 
 function initDayunSwipe() {
@@ -321,6 +383,7 @@ function updateBaziTable() {
     const month = parseInt(document.getElementById('monthSelect').value);
     const day = parseInt(document.getElementById('dateSelect').value);
     const hourValue = document.getElementById('hourSelect').value;
+    const timezoneValue = parseInt(document.getElementById('timezoneSelect')?.value || '8', 10);
     const gender = document.querySelector('input[name="gender"]:checked').value;
     const calendarType = 'solar';
 
@@ -330,8 +393,8 @@ function updateBaziTable() {
       hour = parseInt(hourValue);
     }
 
-    // Calculate Bazi
-    const baziResult = calculateBazi(year, month, day, hour, gender, calendarType);
+    // Calculate Bazi with timezone adjustment
+    const baziResult = calculateBazi(year, month, day, hour, gender, calendarType, timezoneValue);
 
     // Prepare variables for DaYun calculation
     let currentDaYunBranch = null;

@@ -22,11 +22,11 @@ function getCurrentBazi() {
   const genderRadio = document.querySelector('input[name="gender"]:checked');
   const gender = genderRadio ? genderRadio.value : 'male';
 
-  const calendarRadio = document.querySelector('input[name="calendar"]:checked');
-  const calendarType = calendarRadio ? calendarRadio.value : 'solar';
+  const timezoneSelect = document.getElementById('timezoneSelect');
+  const timezoneValue = parseInt(timezoneSelect ? timezoneSelect.value : '8', 10);
 
   // Get bazi calculation result
-  const baziResult = calculateBazi(year, month, day, hour, gender, calendarType);
+  const baziResult = calculateBazi(year, month, day, hour, gender, calendarType, timezoneValue);
 
   // Get dayun calculation result
   let dayunResult = { dayunList: [] };

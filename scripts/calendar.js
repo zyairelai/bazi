@@ -81,7 +81,10 @@ function populateDropdowns() {
   dateSelect.innerHTML = '';
   hourSelect.innerHTML = '';
 
-  for (let year = 1850; year <= 2150; year++) {
+  const currentYear = new Date().getFullYear();
+  const startYear = currentYear - 85;
+  const endYear = currentYear + 5;
+  for (let year = startYear; year <= endYear; year++) {
     const option = document.createElement('option');
     option.value = year;
     option.textContent = year;
