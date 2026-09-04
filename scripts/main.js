@@ -209,17 +209,25 @@ function initQuickDateInput() {
     const dateSelect = document.getElementById('dateSelect');
 
     if (yearSelect && monthSelect && dateSelect) {
-      let yearOption = Array.from(yearSelect.options).find(opt => parseInt(opt.value, 10) === year);
-      if (!yearOption) {
-        yearOption = document.createElement('option');
-        yearOption.value = year;
-        yearOption.textContent = year;
-        const options = Array.from(yearSelect.options);
-        const index = options.findIndex(opt => parseInt(opt.value, 10) > year);
-        if (index === -1) {
-          yearSelect.appendChild(yearOption);
-        } else {
-          yearSelect.insertBefore(yearOption, options[index]);
+      if (isNaN(year) || isNaN(mm) || isNaN(dd)) return;
+      if (mm < 1 || mm > 12) return;
+      if (year < 1) return;
+
+      if (typeof window.ensureYearOption === 'function') {
+        window.ensureYearOption(year);
+      } else {
+        let yearOption = Array.from(yearSelect.options).find(opt => parseInt(opt.value, 10) === year);
+        if (!yearOption) {
+          yearOption = document.createElement('option');
+          yearOption.value = year;
+          yearOption.textContent = year;
+          const options = Array.from(yearSelect.options);
+          const index = options.findIndex(opt => parseInt(opt.value, 10) > year);
+          if (index === -1) {
+            yearSelect.appendChild(yearOption);
+          } else {
+            yearSelect.insertBefore(yearOption, options[index]);
+          }
         }
       }
 

@@ -140,19 +140,46 @@ function updateDaysDropdown() {
   }
 }
 
+function ensureYearOption(year) {
+  const y = parseInt(year, 10);
+  if (isNaN(y)) return;
+  const yearSelect = document.getElementById('yearSelect');
+  if (!yearSelect) return;
+
+  const options = Array.from(yearSelect.options);
+  let yearOption = options.find(opt => parseInt(opt.value, 10) === y);
+  if (!yearOption) {
+    yearOption = document.createElement('option');
+    yearOption.value = y;
+    yearOption.textContent = y;
+    const index = options.findIndex(opt => parseInt(opt.value, 10) > y);
+    if (index === -1) {
+      yearSelect.appendChild(yearOption);
+    } else {
+      yearSelect.insertBefore(yearOption, options[index]);
+    }
+  }
+}
+
+window.ensureYearOption = ensureYearOption;
+
 let previousMonth = null;
 let previousYear = null;
 
 function updateDate() {
-  const year = parseInt(yearSelect.value);
-  const monthValue = parseInt(monthSelect.value);
+  const year = parseInt(yearSelect.value, 10);
+  const monthValue = parseInt(monthSelect.value, 10);
   const hourValue = hourSelect.value;
+
+  if (isNaN(year) || isNaN(monthValue)) return;
+
+  ensureYearOption(year);
 
   // Check if month or year changed - need to update days dropdown
   const monthChanged = monthValue !== (previousMonth !== null ? previousMonth + 1 : null);
   const yearChanged = year !== previousYear;
 
-  let date = parseInt(dateSelect.value);
+  let date = parseInt(dateSelect.value, 10);
 
   if (monthChanged || yearChanged) {
     updateDaysDropdown();
@@ -165,7 +192,7 @@ function updateDate() {
   // Handle unknown hour (-1 means skip hour)
   let hour = 0; // default hour
   if (hourValue !== '-1' && hourValue !== '') {
-    hour = parseInt(hourValue);
+    hour = parseInt(hourValue, 10);
   } else {
     // Keep current hour if unknown is selected
     hour = selectedDate ? selectedDate.getHours() : 0;
@@ -173,7 +200,10 @@ function updateDate() {
 
   // Solar calendar: direct date
   const month = monthValue - 1; // JavaScript months are 0-indexed
-  selectedDate = new Date(year, month, date, hour, selectedDate ? selectedDate.getMinutes() : 0);
+  const newDate = new Date();
+  newDate.setFullYear(year, month, date || 1);
+  newDate.setHours(hour, selectedDate ? selectedDate.getMinutes() : 0, 0, 0);
+  selectedDate = newDate;
 
   // Update previous values
   previousMonth = monthValue - 1;
@@ -188,22 +218,24 @@ function updateDate() {
 }
 
 function renderUI() {
+  if (!selectedDate || isNaN(selectedDate.getTime())) return;
+
   const y = selectedDate.getFullYear();
   const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
   const d = String(selectedDate.getDate()).padStart(2, '0');
   const h = String(selectedDate.getHours()).padStart(2, '0');
-  const min = String(selectedDate.getMinutes()).padStart(2, '0');
 
-  // Update dropdown values
+  // Ensure option for year exists and update dropdown values
+  ensureYearOption(y);
   yearSelect.value = y;
-  monthSelect.value = parseInt(m);
+  monthSelect.value = parseInt(m, 10);
   // Only update days dropdown if month/year changed (to avoid redundant updates)
   if (previousMonth !== selectedDate.getMonth() || previousYear !== selectedDate.getFullYear()) {
     updateDaysDropdown();
     previousMonth = selectedDate.getMonth();
     previousYear = selectedDate.getFullYear();
   }
-  dateSelect.value = parseInt(d);
+  dateSelect.value = parseInt(d, 10);
   // Set the correct shichen based on hour, or keep unknown if it was selected
   const currentHourValue = hourSelect.value;
   if (currentHourValue === '-1') {
@@ -211,10 +243,11 @@ function renderUI() {
     hourSelect.value = -1;
   } else {
     // Find the shichen that matches the current hour
-    const targetHour = parseInt(h);
+    const targetHour = parseInt(h, 10);
     const shichenIndex = hourToShichen(targetHour);
     if (shichenIndex + 1 < SHICHEN.length) {
       hourSelect.value = SHICHEN[shichenIndex + 1].hour;
     }
   }
 }
+

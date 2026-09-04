@@ -261,6 +261,9 @@
         const genderRadio = document.querySelector(`input[name="gender"][value="${entry.gender}"]`);
         if (genderRadio) genderRadio.checked = true;
 
+        if (typeof window.ensureYearOption === 'function') {
+            window.ensureYearOption(entry.year);
+        }
         document.getElementById('yearSelect').value = entry.year;
         document.getElementById('monthSelect').value = entry.month;
         document.getElementById('dateSelect').value = entry.date;
