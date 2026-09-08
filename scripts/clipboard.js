@@ -25,17 +25,20 @@ function getCurrentBazi() {
   const timezoneSelect = document.getElementById('timezoneSelect');
   const timezoneValue = parseInt(timezoneSelect ? timezoneSelect.value : '8', 10);
 
+  const calendarType = 'solar';
+
   // Get bazi calculation result
   const baziResult = calculateBazi(year, month, day, hour, gender, calendarType, timezoneValue);
 
   // Get dayun calculation result
   let dayunResult = { dayunList: [] };
-  if (baziResult && baziResult.eightChar) {
-    dayunResult = calculateDayun(baziResult.eightChar, gender, baziResult.birthYear);
+  if (baziResult && baziResult.eightChar && baziResult.baziDetails && baziResult.baziDetails.day) {
+    const dayGan = baziResult.baziDetails.day.gan;
+    dayunResult = calculateDayun(baziResult.eightChar, gender, baziResult.birthYear, dayGan);
   }
 
   // Format output: header + dayun list
-  let result = baziResult.header || '';
+  let result = (baziResult.header || '').replace(/\s*\(UTC[+-]?\d+\)/, '');
 
   // Add DaYun periods - only show current and next DaYun dynamically
   if (dayunResult && dayunResult.dayunList && dayunResult.dayunList.length > 0) {
